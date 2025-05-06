@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
+import {Arrays} from "@openzeppelin/contracts/utils/Arrays.sol";
+import "./OracleToken.sol";
 
-contract StakeBasedOracle is Ownable {
+contract StakeBasedOracle {
     ORC public oracleToken;
 
     struct OracleNode {
@@ -24,8 +25,8 @@ contract StakeBasedOracle is Ownable {
 
     address public oracleTokenAddress;
 
-    function setOracleTokenAddress(address _oracleTokenAddress) public onlyOwner {
-        oracleToken = new ORC(_oracleTokenAddress);
+    constructor() {
+        oracleToken = new ORC();
     }
 
     function registerNode() public payable {
@@ -53,7 +54,22 @@ contract StakeBasedOracle is Ownable {
         emit PriceReported(msg.sender, price);
     }
 
-    function calculateMedianPrice() public view returns (uint256) {}
+    function validateAndSlashNodes() internal returns (uint256[] memory prices) {
+        uint256[] memory validPrices = new uint256[](nodeAddresses.length);
+        for (uint i = 0; i < nodeAddresses.length; i++) {
+            address nodeAddress = nodeAddresses[i];
+            OracleNode storage node = nodes[nodeAddress];
+            
+            if (block.timestamp - node.lastReportedTimestamp > 1 days) {
+                uint256 inactivityPenalty = node.stakedAmount / 10; // 10% penalty
+                slashNode(nodeAddress, inactivityPenalty);
+            } else {
+                // reward node   
+                oracleToken.mint(nodeAddress, 10 * 10 ** 18);
+                validPrices[i] = node.lastReportedPrice;
+            }
+        }
+    }
 
     function slashNode(address nodeToSlash, uint256 penalty) internal {
         OracleNode storage node = nodes[nodeToSlash];
@@ -65,18 +81,18 @@ contract StakeBasedOracle is Ownable {
         emit NodeSlashed(nodeToSlash, penalty);
     }
 
-    function validateAndSlashNodes() public {
-      for (uint i = 0; i < nodeAddresses.length; i++) {
-          address nodeAddress = nodeAddresses[i];
-          OracleNode storage node = nodes[nodeAddress];
-          
-          if (block.timestamp - node.lastReportedTimestamp > 1 days) {
-              uint256 inactivityPenalty = node.stakedAmount / 10; // 10% penalty
-              slashNode(nodeAddress, inactivityPenalty);
-          } else {
-            // reward node   
-            ORC.mint(nodeAddress, 100 * 10 ** ORC.decimals());
-          }
-      }
+    function getPrice() public returns (uint256) {
+        uint256[] memory validPrices = validateAndSlashNodes();
+        Arrays.sort(validPrices);
+        return _getMedian(validPrices);
+    }
+
+    function _getMedian(uint256[] memory arr) internal pure returns (uint256) {
+        uint256 length = arr.length;
+        if (length % 2 == 0) {
+            return (arr[length / 2 - 1] + arr[length / 2]) / 2;
+        } else {
+            return arr[length / 2];
+        }
     }
 }

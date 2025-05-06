@@ -2,6 +2,7 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "./SimpleOracle.sol";
+import {Arrays} from "@openzeppelin/contracts/utils/Arrays.sol";
 
 contract MedianOracle {
     address public owner;
@@ -39,7 +40,7 @@ contract MedianOracle {
         emit OracleRemoved(oracleAddress);
     }
 
-    function getMedianPrice() public view returns (uint256) {
+    function getPrice() public view returns (uint256) {
         require(oracles.length > 0, "No oracles available");
         
         // Collect prices and timestamps from all oracles
@@ -58,7 +59,7 @@ contract MedianOracle {
 
         require(validCount > 0, "No valid prices available");
 
-        _sortArray(prices);
+        Arrays.sort(prices);
         
         uint256 median;
         if (prices.length % 2 == 0) {
@@ -69,18 +70,5 @@ contract MedianOracle {
         }
         
         return median;
-    }
-
-    function _sortArray(uint256[] memory arr) internal pure {
-        uint256 length = arr.length;
-        for (uint256 i = 0; i < length; i++) {
-            for (uint256 j = i + 1; j < length; j++) {
-                if (arr[i] > arr[j]) {
-                    uint256 temp = arr[i];
-                    arr[i] = arr[j];
-                    arr[j] = temp;
-                }
-            }
-        }
     }
 }
