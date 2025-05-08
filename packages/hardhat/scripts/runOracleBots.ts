@@ -6,7 +6,7 @@ const validateNodes = async () => {
   const oracleAdminAccount = signers[0];
   const oracle = await ethers.getContract<Contract>("StakeBasedOracle", oracleAdminAccount.address);
   console.log("Validating nodes...");
-  oracle.validateNodes();
+  await oracle.validateNodes();
 };
 
 const getRandomPrice = () => {
@@ -17,24 +17,32 @@ const getRandomPrice = () => {
 const reportPrices = async () => {
   const signers = await ethers.getSigners();
   const oracleNodeAccounts = signers.slice(1, 11);
-  Promise.all(
-    oracleNodeAccounts.map(async account => {
-      const oracle = await ethers.getContract<Contract>("StakeBasedOracle", account.address);
-      const price = getRandomPrice();
-      console.log(`Reporting price ${price} from ${account.address}`);
-      return oracle.reportPrice(price);
-    }),
-  );
+  try {
+    await Promise.all(
+      oracleNodeAccounts.map(async account => {
+        const oracle = await ethers.getContract<Contract>("StakeBasedOracle", account.address);
+        const price = getRandomPrice();
+        console.log(`Reporting price ${price} from ${account.address}`);
+        return oracle.reportPrice(price);
+      }),
+    );
+  } catch (error) {
+    console.error("Error reporting prices:", error);
+  }
 };
 
-const run = () => {
-  setInterval(() => {
-    reportPrices();
+const run = async () => {
+  // Initial price reports
+  await reportPrices();
+  
+  // Set up intervals
+  setInterval(async () => {
+    await reportPrices();
   }, 2000);
 
-  setInterval(() => {
-    validateNodes();
-  }, 2000);
+  setInterval(async () => {
+    await validateNodes();
+  }, 5000);
 };
 
-run();
+run().catch(console.error);
