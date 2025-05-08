@@ -60,7 +60,7 @@ const deployOracleContracts: DeployFunction = async function (hre: HardhatRuntim
   }
 
   console.log("Calculating initial median price...");
-  const medianPrice = await medianOracleContract.getMedianPrice();
+  const medianPrice = await medianOracleContract.getPrice();
   console.log(`Initial median price: ${medianPrice.toString()}`);
 
   console.log("All oracle contracts deployed and configured successfully!");
