@@ -18,7 +18,7 @@ contract StakeBasedOracle {
     address[] public nodeAddresses;
 
     uint256 public constant MINIMUM_STAKE = 10 ether;
-    uint256 public constant STALE_DATA_WINDOW = 5 seconds;
+    uint256 public constant STALE_DATA_WINDOW = 10 seconds;
 
     event NodeRegistered(address indexed node, uint256 stakedAmount);
     event PriceReported(address indexed node, uint256 price);
@@ -147,5 +147,9 @@ contract StakeBasedOracle {
         uint256[] memory validPrices = getPricesFromAddresses(validAddresses);
         Arrays.sort(validPrices);
         return getMedian(validPrices);
+    }
+
+    function getNodeAddresses() public view returns (address[] memory) {
+        return nodeAddresses;
     }
 }
