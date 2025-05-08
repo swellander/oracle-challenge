@@ -10,7 +10,7 @@ const deployStakingOracle: DeployFunction = async function (hre: HardhatRuntimeE
   console.log("Deploying Stake-based Oracle contract...");
 
   const signers = await ethers.getSigners();
-  const accounts = signers.slice(0, 10);
+  const accounts = signers.slice(1, 11);
 
   await deploy("StakeBasedOracle", {
     contract: "StakeBasedOracle",
@@ -24,7 +24,7 @@ const deployStakingOracle: DeployFunction = async function (hre: HardhatRuntimeE
     accounts.map(async account => {
       const stakingOracle = await ethers.getContract<Contract>("StakeBasedOracle", account.address);
       console.log(`Adding account ${account.address} as a node...`);
-      await stakingOracle.registerNode({ value: ethers.parseEther("100") });
+      await stakingOracle.registerNode({ value: ethers.parseEther("50") });
     }),
   );
 
