@@ -17,7 +17,7 @@ contract StakeBasedOracle {
     mapping(address => OracleNode) public nodes;
     address[] public nodeAddresses;
 
-    uint256 public constant MINIMUM_STAKE = 100 ether;
+    uint256 public constant MINIMUM_STAKE = 10 ether;
     uint256 public constant STALE_DATA_WINDOW = 5 seconds;
 
     event NodeRegistered(address indexed node, uint256 stakedAmount);
@@ -58,25 +58,80 @@ contract StakeBasedOracle {
         emit PriceReported(msg.sender, price);
     }
 
-    /* ========== Price Calculation Functions ========== */
-    function filterStaleNodes(address[] memory nodesToFilter, bool returnStaleNodes) internal view returns (address[] memory) {
-        address[] memory filteredNodeAddresses = new address[](nodesToFilter.length);
+    function rewardNode(address nodeAddress, uint256 reward) public {
+        oracleToken.mint(nodeAddress, reward);
+        emit NodeRewarded(nodeAddress, reward);
+    }
 
-        for (uint i = 0; i < nodesToFilter.length; i++) {
-            address nodeAddress = nodesToFilter[i];
+    function slashNode(address nodeToSlash, uint256 penalty) public {
+        OracleNode storage node = nodes[nodeToSlash];
+
+        require(node.stakedAmount >= penalty, "Penalty exceeds stake");
+        node.stakedAmount -= penalty;
+
+        emit NodeSlashed(nodeToSlash, penalty);
+    }
+
+    function validateNodes() public {
+        (address[] memory freshNodes, address[] memory staleNodes)  = separateStaleNodes(nodeAddresses);
+
+        for (uint256 i = 0; i < freshNodes.length; i++) {
+            address nodeAddress = freshNodes[i];
+            rewardNode(nodeAddress, 10 ether);
+        }
+
+        for (uint256 i = 0; i < staleNodes.length; i++) {
+            address nodeAddress = staleNodes[i];
+            slashNode(nodeAddress, 1 ether);
+        }
+    }
+
+
+    /* ========== Price Calculation Functions ========== */
+    function getMedian(uint256[] memory arr) public pure returns (uint256) {
+        uint256 length = arr.length;
+        if (length % 2 == 0) {
+            return (arr[length / 2 - 1] + arr[length / 2]) / 2;
+        } else {
+            return arr[length / 2];
+        }
+    }
+
+    function separateStaleNodes(address[] memory nodesToSeparate) public view returns (address[] memory fresh, address[] memory stale) {
+        address[] memory freshNodeAddresses = new address[](nodesToSeparate.length);
+        address[] memory staleNodeAddresses = new address[](nodesToSeparate.length);
+        uint256 freshCount = 0;
+        uint256 staleCount = 0;
+
+        for (uint i = 0; i < nodesToSeparate.length; i++) {
+            address nodeAddress = nodesToSeparate[i];
             OracleNode memory node = nodes[nodeAddress];
             uint256 timeElapsed = block.timestamp - node.lastReportedTimestamp;
             bool dataIsStale = timeElapsed > STALE_DATA_WINDOW;
 
-            if (dataIsStale == returnStaleNodes) {
-                filteredNodeAddresses[i] = nodeAddress;
+            if (dataIsStale) {
+                staleNodeAddresses[staleCount] = nodeAddress;
+                staleCount++;
+            } else {
+                freshNodeAddresses[freshCount] = nodeAddress;
+                freshCount++;
             }
         }
 
-        return filteredNodeAddresses;
+        address[] memory trimmedFreshNodes = new address[](freshCount);
+        address[] memory trimmedStaleNodes = new address[](staleCount);
+
+        for (uint i = 0; i < freshCount; i++) {
+            trimmedFreshNodes[i] = freshNodeAddresses[i];
+        }
+        for (uint i = 0; i < staleCount; i++) {
+            trimmedStaleNodes[i] = staleNodeAddresses[i];
+        }
+
+        return (trimmedFreshNodes, trimmedStaleNodes);
     }
 
-    function getPricesFromAddresses(address[] memory addresses) internal view returns (uint256[] memory) {
+    function getPricesFromAddresses(address[] memory addresses) public view returns (uint256[] memory) {
         uint256[] memory prices = new uint256[](addresses.length);
 
         for (uint256 i = 0; i < addresses.length; i++) {
@@ -88,32 +143,9 @@ contract StakeBasedOracle {
     }
 
     function getPrice() public view returns (uint256) {
-        address[] memory validAddresses = filterStaleNodes(nodeAddresses, false);
+        (address[] memory validAddresses, ) = separateStaleNodes(nodeAddresses);
         uint256[] memory validPrices = getPricesFromAddresses(validAddresses);
         Arrays.sort(validPrices);
-        return _getMedian(validPrices);
-    }
-
-    function rewardNode(address nodeAddress, uint256 reward) internal {
-        oracleToken.mint(nodeAddress, reward);
-        emit NodeRewarded(nodeAddress, reward);
-    }
-
-    function slashNode(address nodeToSlash, uint256 penalty) internal {
-        OracleNode storage node = nodes[nodeToSlash];
-
-        require(node.stakedAmount >= penalty, "Penalty exceeds stake");
-        node.stakedAmount -= penalty;
-
-        emit NodeSlashed(nodeToSlash, penalty);
-    }
-
-    function _getMedian(uint256[] memory arr) internal pure returns (uint256) {
-        uint256 length = arr.length;
-        if (length % 2 == 0) {
-            return (arr[length / 2 - 1] + arr[length / 2]) / 2;
-        } else {
-            return arr[length / 2];
-        }
+        return getMedian(validPrices);
     }
 }
