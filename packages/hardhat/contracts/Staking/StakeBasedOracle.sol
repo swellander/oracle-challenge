@@ -58,12 +58,12 @@ contract StakeBasedOracle {
         emit PriceReported(msg.sender, price);
     }
 
-    function rewardNode(address nodeAddress, uint256 reward) public {
+    function rewardNode(address nodeAddress, uint256 reward) internal {
         oracleToken.mint(nodeAddress, reward);
         emit NodeRewarded(nodeAddress, reward);
     }
 
-    function slashNode(address nodeToSlash, uint256 penalty) public {
+    function slashNode(address nodeToSlash, uint256 penalty) internal {
         OracleNode storage node = nodes[nodeToSlash];
 
         require(node.stakedAmount >= penalty, "Penalty exceeds stake");
@@ -88,7 +88,7 @@ contract StakeBasedOracle {
 
 
     /* ========== Price Calculation Functions ========== */
-    function getMedian(uint256[] memory arr) public pure returns (uint256) {
+    function getMedian(uint256[] memory arr) internal pure returns (uint256) {
         uint256 length = arr.length;
         if (length % 2 == 0) {
             return (arr[length / 2 - 1] + arr[length / 2]) / 2;
@@ -97,7 +97,7 @@ contract StakeBasedOracle {
         }
     }
 
-    function separateStaleNodes(address[] memory nodesToSeparate) public view returns (address[] memory fresh, address[] memory stale) {
+    function separateStaleNodes(address[] memory nodesToSeparate) internal view returns (address[] memory fresh, address[] memory stale) {
         address[] memory freshNodeAddresses = new address[](nodesToSeparate.length);
         address[] memory staleNodeAddresses = new address[](nodesToSeparate.length);
         uint256 freshCount = 0;
@@ -131,7 +131,7 @@ contract StakeBasedOracle {
         return (trimmedFreshNodes, trimmedStaleNodes);
     }
 
-    function getPricesFromAddresses(address[] memory addresses) public view returns (uint256[] memory) {
+    function getPricesFromAddresses(address[] memory addresses) internal view returns (uint256[] memory) {
         uint256[] memory prices = new uint256[](addresses.length);
 
         for (uint256 i = 0; i < addresses.length; i++) {
