@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
-import {Arrays} from "@openzeppelin/contracts/utils/Arrays.sol";
+import { Arrays } from "@openzeppelin/contracts/utils/Arrays.sol";
 import "./OracleToken.sol";
 
 contract StakeBasedOracle {
@@ -18,10 +18,13 @@ contract StakeBasedOracle {
     address[] public nodeAddresses;
 
     uint256 public constant MINIMUM_STAKE = 100 ether;
+    uint256 public constant STALE_DATA_WINDOW = 5 seconds;
 
     event NodeRegistered(address indexed node, uint256 stakedAmount);
     event PriceReported(address indexed node, uint256 price);
+
     event NodeSlashed(address indexed node, uint256 amount);
+    event NodeRewarded(address indexed node, uint256 amount);
 
     address public oracleTokenAddress;
 
@@ -29,9 +32,10 @@ contract StakeBasedOracle {
         oracleToken = new ORC();
     }
 
+    /* ========== Oracle Node Operation Functions ========== */
     function registerNode() public payable {
         require(msg.value >= MINIMUM_STAKE, "Insufficient stake");
-        
+
         nodes[msg.sender] = OracleNode({
             nodeAddress: msg.sender,
             stakedAmount: msg.value,
@@ -54,37 +58,54 @@ contract StakeBasedOracle {
         emit PriceReported(msg.sender, price);
     }
 
-    function validateAndSlashNodes() internal returns (uint256[] memory prices) {
-        uint256[] memory validPrices = new uint256[](nodeAddresses.length);
-        for (uint i = 0; i < nodeAddresses.length; i++) {
-            address nodeAddress = nodeAddresses[i];
-            OracleNode storage node = nodes[nodeAddress];
-            
-            if (block.timestamp - node.lastReportedTimestamp > 1 days) {
-                uint256 inactivityPenalty = node.stakedAmount / 10; // 10% penalty
-                slashNode(nodeAddress, inactivityPenalty);
-            } else {
-                // reward node   
-                oracleToken.mint(nodeAddress, 10 * 10 ** 18);
-                validPrices[i] = node.lastReportedPrice;
+    /* ========== Price Calculation Functions ========== */
+    function filterStaleNodes(address[] memory nodesToFilter, bool returnStaleNodes) internal view returns (address[] memory) {
+        address[] memory filteredNodeAddresses = new address[](nodesToFilter.length);
+
+        for (uint i = 0; i < nodesToFilter.length; i++) {
+            address nodeAddress = nodesToFilter[i];
+            OracleNode memory node = nodes[nodeAddress];
+            uint256 timeElapsed = block.timestamp - node.lastReportedTimestamp;
+            bool dataIsStale = timeElapsed > STALE_DATA_WINDOW;
+
+            if (dataIsStale == returnStaleNodes) {
+                filteredNodeAddresses[i] = nodeAddress;
             }
         }
+
+        return filteredNodeAddresses;
+    }
+
+    function getPricesFromAddresses(address[] memory addresses) internal view returns (uint256[] memory) {
+        uint256[] memory prices = new uint256[](addresses.length);
+
+        for (uint256 i = 0; i < addresses.length; i++) {
+            OracleNode memory node = nodes[addresses[i]];
+            prices[i] = node.lastReportedPrice;
+        }
+
+        return prices;
+    }
+
+    function getPrice() public view returns (uint256) {
+        address[] memory validAddresses = filterStaleNodes(nodeAddresses, false);
+        uint256[] memory validPrices = getPricesFromAddresses(validAddresses);
+        Arrays.sort(validPrices);
+        return _getMedian(validPrices);
+    }
+
+    function rewardNode(address nodeAddress, uint256 reward) internal {
+        oracleToken.mint(nodeAddress, reward);
+        emit NodeRewarded(nodeAddress, reward);
     }
 
     function slashNode(address nodeToSlash, uint256 penalty) internal {
         OracleNode storage node = nodes[nodeToSlash];
-        
-        // Reduce stake
+
         require(node.stakedAmount >= penalty, "Penalty exceeds stake");
         node.stakedAmount -= penalty;
 
         emit NodeSlashed(nodeToSlash, penalty);
-    }
-
-    function getPrice() public returns (uint256) {
-        uint256[] memory validPrices = validateAndSlashNodes();
-        Arrays.sort(validPrices);
-        return _getMedian(validPrices);
     }
 
     function _getMedian(uint256[] memory arr) internal pure returns (uint256) {
