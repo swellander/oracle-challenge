@@ -2,7 +2,7 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "./SimpleOracle.sol";
-import {Arrays} from "@openzeppelin/contracts/utils/Arrays.sol";
+import { Arrays } from "@openzeppelin/contracts/utils/Arrays.sol";
 
 contract MedianOracle {
     address public owner;
@@ -28,21 +28,21 @@ contract MedianOracle {
 
     function removeOracle(uint256 index) public onlyOwner {
         require(index < oracles.length, "Index out of bounds");
-        
+
         address oracleAddress = address(oracles[index]);
-        
+
         if (index != oracles.length - 1) {
             oracles[index] = oracles[oracles.length - 1];
         }
-        
+
         oracles.pop();
-        
+
         emit OracleRemoved(oracleAddress);
     }
 
     function getPrice() public view returns (uint256) {
         require(oracles.length > 0, "No oracles available");
-        
+
         // Collect prices and timestamps from all oracles
         uint256[] memory prices = new uint256[](oracles.length);
         uint256 validCount = 0; // Count of valid prices
@@ -60,7 +60,7 @@ contract MedianOracle {
         require(validCount > 0, "No valid prices available");
 
         Arrays.sort(prices);
-        
+
         uint256 median;
         if (prices.length % 2 == 0) {
             uint256 midIndex = prices.length / 2;
@@ -68,7 +68,7 @@ contract MedianOracle {
         } else {
             median = prices[prices.length / 2];
         }
-        
+
         return median;
     }
 }

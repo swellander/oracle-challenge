@@ -1,0 +1,26 @@
+{
+  "PRICE_RANGE": {
+    "NORMAL": {
+      "MIN": 2004,
+      "MAX": 2006
+    },
+    "OUTLIER": {
+      "MIN": 1870,
+      "MAX": 1892
+    }
+  },
+  "INTERVALS": {
+    "PRICE_REPORT": 1750,
+    "VALIDATION": 1750
+  },
+  "NODE_CONFIGS": {
+    "default": {
+      "PROBABILITY_OF_SKIPPING_REPORT": 0,
+      "PROBABILITY_OF_OUTLIER_PRICE": 0
+    },
+    "0x70997970C51812dc3A010C7d01b50e0d17dc79C8": {
+      "PROBABILITY_OF_SKIPPING_REPORT": 0,
+      "PROBABILITY_OF_OUTLIER_PRICE": 0
+    }
+  }
+}

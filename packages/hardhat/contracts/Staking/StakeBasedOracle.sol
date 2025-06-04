@@ -18,13 +18,15 @@ contract StakeBasedOracle {
     address[] public nodeAddresses;
 
     uint256 public constant MINIMUM_STAKE = 10 ether;
-    uint256 public constant STALE_DATA_WINDOW = 10 seconds;
+    uint256 public constant STALE_DATA_WINDOW = 15 seconds;
 
     event NodeRegistered(address indexed node, uint256 stakedAmount);
     event PriceReported(address indexed node, uint256 price);
 
     event NodeSlashed(address indexed node, uint256 amount);
     event NodeRewarded(address indexed node, uint256 amount);
+
+    event NodesValidated();
 
     address public oracleTokenAddress;
 
@@ -73,7 +75,7 @@ contract StakeBasedOracle {
     }
 
     function validateNodes() public {
-        (address[] memory freshNodes, address[] memory staleNodes)  = separateStaleNodes(nodeAddresses);
+        (address[] memory freshNodes, address[] memory staleNodes) = separateStaleNodes(nodeAddresses);
 
         for (uint256 i = 0; i < freshNodes.length; i++) {
             address nodeAddress = freshNodes[i];
@@ -84,8 +86,9 @@ contract StakeBasedOracle {
             address nodeAddress = staleNodes[i];
             slashNode(nodeAddress, 1 ether);
         }
-    }
 
+        emit NodesValidated();
+    }
 
     /* ========== Price Calculation Functions ========== */
     function getMedian(uint256[] memory arr) internal pure returns (uint256) {
@@ -97,7 +100,9 @@ contract StakeBasedOracle {
         }
     }
 
-    function separateStaleNodes(address[] memory nodesToSeparate) internal view returns (address[] memory fresh, address[] memory stale) {
+    function separateStaleNodes(
+        address[] memory nodesToSeparate
+    ) internal view returns (address[] memory fresh, address[] memory stale) {
         address[] memory freshNodeAddresses = new address[](nodesToSeparate.length);
         address[] memory staleNodeAddresses = new address[](nodesToSeparate.length);
         uint256 freshCount = 0;

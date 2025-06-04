@@ -1,56 +1,40 @@
+import { reportPrices } from "./oracle-bot/reporting";
+import { validateNodes } from "./oracle-bot/validation";
 import { ethers } from "hardhat";
-import { Contract } from "ethers";
 
-const PROBABILITY_OF_PRICE_REPORT = 0.8;
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-const getRandomPrice = () => {
-  // Random price between 1990 and 2010
-  return Math.floor(Math.random() * 21) + 1990;
-};
-
-const validateNodes = async () => {
-  const signers = await ethers.getSigners();
-  const oracleAdminAccount = signers[0];
-  const oracle = await ethers.getContract<Contract>("StakeBasedOracle", oracleAdminAccount.address);
-  console.log("Validating nodes...");
-  await oracle.validateNodes();
-};
-
-const reportPrices = async () => {
-  const signers = await ethers.getSigners();
-  const oracleNodeAccounts = signers.slice(1, 11);
+const runCycle = async () => {
   try {
-    await Promise.all(
-      oracleNodeAccounts.map(async account => {
-        const shouldReport = Math.random() < PROBABILITY_OF_PRICE_REPORT;
-        if (shouldReport) {
-          const oracle = await ethers.getContract<Contract>("StakeBasedOracle", account.address);
-          const price = getRandomPrice();
-          console.log(`Reporting price ${price} from ${account.address}`);
-          return oracle.reportPrice(price);
-        } else {
-          console.log(`Skipping price report from ${account.address}`);
-          return Promise.resolve();
-        }
-      }),
-    );
+    const blockNumber = await ethers.provider.getBlockNumber();
+    console.log(`\n[Block ${blockNumber}] Starting new oracle cycle...`);
+
+    await reportPrices();
+    await ethers.provider.send("evm_mine", []);
+
+    await validateNodes();
+    await ethers.provider.send("evm_mine", []);
+
   } catch (error) {
-    console.error("Error reporting prices:", error);
+    console.error("Error in oracle cycle:", error);
   }
 };
 
 const run = async () => {
-  // Initial price reports
-  await reportPrices();
+  console.log("Starting oracle bot system...");
 
-  // Set up intervals
-  setInterval(async () => {
-    await reportPrices();
-  }, 1000);
-
-  setInterval(async () => {
-    await validateNodes();
-  }, 5000);
+  while (true) {
+    await runCycle();
+    await sleep(3000);
+  }
 };
 
-run().catch(console.error);
+// Add proper error handling for the main loop
+process.on("unhandledRejection", error => {
+  console.error("Unhandled promise rejection:", error);
+});
+
+run().catch(error => {
+  console.error("Fatal error in oracle bot system:", error);
+  process.exit(1);
+});

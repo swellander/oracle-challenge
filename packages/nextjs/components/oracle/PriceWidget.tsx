@@ -1,0 +1,48 @@
+import { useEffect, useRef, useState } from "react";
+import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
+
+const getHighlightColor = (oldPrice: bigint | undefined, newPrice: bigint | undefined): string => {
+  if (oldPrice === undefined || newPrice === undefined) return "";
+
+  const change = Math.abs(Number(newPrice) - Number(oldPrice));
+
+  if (change < 3) return "bg-green-100 dark:bg-green-900";
+  if (change < 5) return "bg-yellow-100 dark:bg-yellow-900";
+  return "bg-red-100 dark:bg-red-900";
+};
+
+export const PriceWidget = () => {
+  const [highlight, setHighlight] = useState(false);
+  const [highlightColor, setHighlightColor] = useState("");
+  const prevPrice = useRef<bigint | undefined>(undefined);
+
+  const { data: currentPrice } = useScaffoldReadContract({
+    contractName: "StakeBasedOracle",
+    functionName: "getPrice",
+  });
+
+  useEffect(() => {
+    if (currentPrice !== undefined && prevPrice.current !== undefined && currentPrice !== prevPrice.current) {
+      setHighlightColor(getHighlightColor(prevPrice.current, currentPrice));
+      setHighlight(true);
+      setTimeout(() => {
+        setHighlight(false);
+        setHighlightColor("");
+      }, 650);
+    }
+    prevPrice.current = currentPrice;
+  }, [currentPrice]);
+
+  return (
+    <div className="flex flex-col gap-2">
+      <h2 className="text-xl font-bold">Current Price</h2>
+      <div className="bg-base-100 rounded-lg p-4 inline-block">
+        <div className={`p-4 rounded-lg transition-colors duration-1000 ${highlight ? highlightColor : ""}`}>
+          <div className="text-2xl font-bold">
+            {currentPrice !== undefined ? currentPrice.toString() : "Loading..."}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};

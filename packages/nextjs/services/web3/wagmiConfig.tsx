@@ -34,11 +34,7 @@ export const wagmiConfig = createConfig({
     return createClient({
       chain,
       transport: fallback(rpcFallbacks),
-      ...(chain.id !== (hardhat as Chain).id
-        ? {
-            pollingInterval: scaffoldConfig.pollingInterval,
-          }
-        : {}),
+      pollingInterval: chain.id === (hardhat as Chain).id ? 1000 : scaffoldConfig.pollingInterval,
     });
   },
 });
