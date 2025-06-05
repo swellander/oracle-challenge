@@ -1,14 +1,14 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { Contract, ethers } from "ethers";
+import { parseEther, parseUnits } from "viem";
 
 const deployStakingOracle: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deployer } = await hre.getNamedAccounts();
   const { deploy } = hre.deployments;
-  const { ethers } = hre;
+  const { viem } = hre;
 
   console.log("Deploying Stake-based Oracle contract...");
-  await deploy("StakeBasedOracle", {
+  const deployment = await deploy("StakeBasedOracle", {
     contract: "StakeBasedOracle",
     from: deployer,
     args: [],
@@ -16,54 +16,52 @@ const deployStakingOracle: DeployFunction = async function (hre: HardhatRuntimeE
     autoMine: true,
   });
 
-  // Get contract instance
-  const stakingOracle = await ethers.getContract<Contract>("StakeBasedOracle", deployer);
+  const stakeOracleAddress = deployment.address as `0x${string}`;
+  console.log("StakeBasedOracle deployed at:", stakeOracleAddress);
 
-  // Get the ORC token address from the oracle contract
-  const orcTokenAddress = await stakingOracle.oracleToken();
+  const accounts = await viem.getWalletClients();
+  const nodeAccounts = accounts.slice(1, 11);
+
+  const publicClient = await viem.getPublicClient();
+
+  const orcTokenAddress = await publicClient.readContract({
+    address: stakeOracleAddress,
+    abi: deployment.abi,
+    functionName: "oracleToken",
+    args: [],
+  });
   console.log("ORC Token deployed at:", orcTokenAddress);
 
-  // Get signers for node accounts
-  const signers = await ethers.getSigners();
-  const accounts = signers.slice(1, 11);
+  await Promise.all(
+    nodeAccounts.map(account => {
+      return account.writeContract({
+        address: stakeOracleAddress,
+        abi: deployment.abi,
+        functionName: "registerNode",
+        args: [],
+        value: parseEther("50"),
+      });
+    }),
+  );
 
-  // Register nodes with initial stake
-  console.log("\nSubmitting node registration transactions...");
-  for (const account of accounts) {
-    const stakingOracle = await ethers.getContract<Contract>("StakeBasedOracle", account.address);
-    console.log(`Submitting registration for ${account.address}...`);
-    const tx = await stakingOracle.registerNode({ value: ethers.parseEther("50") });
-    console.log(`Transaction hash: ${tx.hash}`);
-  }
+  await publicClient.transport.request({
+    method: "evm_mine",
+  });
 
-  // Add debugger statement here to inspect state after registrations
-  console.log("\nPausing for inspection. In debug mode, you can now inspect the state.");
-  debugger;
+  await Promise.all(
+    nodeAccounts.map(account => {
+      return account.writeContract({
+        address: stakeOracleAddress,
+        abi: deployment.abi,
+        functionName: "reportPrice",
+        args: [parseUnits("2000", 6)],
+      });
+    }),
+  );
 
-  // Mine the block
-  console.log("\nMining block for registrations...");
-  await ethers.provider.send("evm_mine", []);
-
-  // Report initial prices
-  console.log("\nSubmitting price reporting transactions...");
-  for (const account of accounts) {
-    const stakingOracle = await ethers.getContract<Contract>("StakeBasedOracle", account.address);
-    console.log(`Submitting price report for ${account.address}...`);
-    const tx = await stakingOracle.reportPrice(2000);
-    console.log(`Transaction hash: ${tx.hash}`);
-  }
-
-  // Add debugger statement here to inspect state after price reports
-  console.log("\nPausing for inspection. In debug mode, you can now inspect the state.");
-  debugger;
-
-  // Mine the block
-  console.log("\nMining block for price reports...");
-  await ethers.provider.send("evm_mine", []);
-
-  console.log("\nDeployment completed:");
-  console.log("- StakeBasedOracle deployed at:", stakingOracle.target);
-  console.log("- ORC Token deployed at:", orcTokenAddress);
+  await publicClient.transport.request({
+    method: "evm_mine",
+  });
 };
 
 export default deployStakingOracle;
