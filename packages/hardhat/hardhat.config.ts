@@ -9,6 +9,7 @@ import "solidity-coverage";
 import "@nomicfoundation/hardhat-verify";
 import "hardhat-deploy";
 import "hardhat-deploy-ethers";
+import "@nomicfoundation/hardhat-viem";
 import { task } from "hardhat/config";
 import generateTsAbis from "./scripts/generateTsAbis";
 
@@ -53,8 +54,8 @@ const config: HardhatUserConfig = {
       mining: {
         auto: false,
         mempool: {
-          order: "fifo"
-        }
+          order: "fifo",
+        },
       },
       forking: {
         url: `https://eth-mainnet.alchemyapi.io/v2/${providerApiKey}`,
