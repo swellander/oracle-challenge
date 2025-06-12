@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { formatUnits } from "viem";
 import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
 
 const getHighlightColor = (oldPrice: bigint | undefined, newPrice: bigint | undefined): string => {
@@ -39,7 +40,7 @@ export const PriceWidget = () => {
       <div className="bg-base-100 rounded-lg p-4 inline-block">
         <div className={`p-4 rounded-lg transition-colors duration-1000 ${highlight ? highlightColor : ""}`}>
           <div className="text-2xl font-bold">
-            {currentPrice !== undefined ? currentPrice.toString() : "Loading..."}
+            {currentPrice !== undefined ? `$${formatUnits(currentPrice, 6)}` : "Loading..."}
           </div>
         </div>
       </div>
