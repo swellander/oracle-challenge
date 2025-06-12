@@ -1,14 +1,23 @@
 import { parseUnits } from "viem";
-import CONFIG from "./config.json";
 import { Config } from "./types";
 import { getRandomPrice } from "./price";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import oracleDeployment from "../../deployments/localhost/StakeBasedOracle.json";
+import fs from "fs";
+import path from "path";
 
-const config = CONFIG as Config;
 const { abi, address } = oracleDeployment as { abi: any; address: `0x${string}` };
 
+const getConfig = (): Config => {
+  const configPath = path.join(__dirname, "config.json");
+  const configContent = fs.readFileSync(configPath, "utf-8");
+  const config = JSON.parse(configContent) as Config;
+  console.log("Current config:", JSON.stringify(config, null, 2));
+  return config;
+};
+
 export const reportPrices = async (hre: HardhatRuntimeEnvironment) => {
+  const config = getConfig();
   const accounts = await hre.viem.getWalletClients();
   const oracleNodeAccounts = accounts.slice(1, 11);
 

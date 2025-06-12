@@ -1,9 +1,15 @@
-import CONFIG from "./config.json";
 import { Config } from "./types";
+import fs from "fs";
+import path from "path";
 
-const config = CONFIG as Config;
+const getConfig = (): Config => {
+  const configPath = path.join(__dirname, "config.json");
+  const configContent = fs.readFileSync(configPath, "utf-8");
+  return JSON.parse(configContent) as Config;
+};
 
 export const getRandomPrice = (nodeAddress: string): number => {
+  const config = getConfig();
   const nodeConfig = config.NODE_CONFIGS[nodeAddress] || config.NODE_CONFIGS.default;
   const isOutlier = Math.random() < nodeConfig.PROBABILITY_OF_OUTLIER_PRICE;
 
