@@ -1,8 +1,8 @@
 {
   "PRICE_RANGE": {
     "NORMAL": {
-      "MIN": 2004,
-      "MAX": 2006
+      "MIN": 2005,
+      "MAX": 2005
     },
     "OUTLIER": {
       "MIN": 1870,
