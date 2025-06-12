@@ -5,7 +5,7 @@ interface HighlightedCellProps {
 
 export const HighlightedCell = ({ highlight, children }: HighlightedCellProps) => {
   return (
-    <td className={`transition-colors duration-300 ${highlight ? "bg-yellow-100 dark:bg-yellow-900" : ""}`}>
+    <td className={`transition-colors duration-100 ${highlight ? "bg-yellow-100 dark:bg-yellow-900" : ""}`}>
       {children}
     </td>
   );

@@ -17,7 +17,7 @@ export const NodesTable = () => {
               <tr>
                 <th>Node Address</th>
                 <th>Staked Amount (ETH)</th>
-                <th>Last Reported Price</th>
+                <th>Last Reported Price (USD)</th>
                 <th>ORC Balance</th>
                 <th>Skip Probability</th>
               </tr>
