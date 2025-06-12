@@ -1,20 +1,21 @@
 import { reportPrices } from "./oracle-bot/reporting";
 import { validateNodes } from "./oracle-bot/validation";
-import { ethers } from "hardhat";
+import { HardhatRuntimeEnvironment } from "hardhat/types";
+import hre from "hardhat";
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-const runCycle = async () => {
+const runCycle = async (hre: HardhatRuntimeEnvironment) => {
   try {
-    const blockNumber = await ethers.provider.getBlockNumber();
+    const publicClient = await hre.viem.getPublicClient();
+    const blockNumber = await publicClient.getBlockNumber();
     console.log(`\n[Block ${blockNumber}] Starting new oracle cycle...`);
 
-    await reportPrices();
-    await ethers.provider.send("evm_mine", []);
+    await reportPrices(hre);
+    await publicClient.transport.request({ method: "evm_mine" });
 
-    await validateNodes();
-    await ethers.provider.send("evm_mine", []);
-
+    await validateNodes(hre);
+    await publicClient.transport.request({ method: "evm_mine" });
   } catch (error) {
     console.error("Error in oracle cycle:", error);
   }
@@ -24,7 +25,7 @@ const run = async () => {
   console.log("Starting oracle bot system...");
 
   while (true) {
-    await runCycle();
+    await runCycle(hre);
     await sleep(3000);
   }
 };

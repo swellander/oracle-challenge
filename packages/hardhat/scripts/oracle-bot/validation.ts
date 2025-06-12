@@ -1,13 +1,18 @@
-import { ethers } from "hardhat";
-import { Contract } from "ethers";
+import { HardhatRuntimeEnvironment } from "hardhat/types";
+import oracleDeployment from "../../deployments/localhost/StakeBasedOracle.json";
 
-export const validateNodes = async () => {
-  const [signer] = await ethers.getSigners();
+const { abi, address } = oracleDeployment as { abi: any; address: `0x${string}` };
+
+export const validateNodes = async (hre: HardhatRuntimeEnvironment) => {
+  const [account] = await hre.viem.getWalletClients();
 
   try {
-    const oracleContract = await ethers.getContract<Contract>("StakeBasedOracle", signer.address);
-    return await oracleContract.validateNodes();
-
+    return await account.writeContract({
+      address,
+      abi,
+      functionName: "validateNodes",
+      args: [],
+    });
   } catch (error) {
     console.error("Error validating nodes:", error);
   }
