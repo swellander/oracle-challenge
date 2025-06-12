@@ -1,14 +1,11 @@
-import { HighlightedCell } from "./HighlightedCell";
 import { ProbabilitySlider } from "./ProbabilitySlider";
-import { useNodeData } from "./hooks/useNodeData";
 import { NodeRowProps } from "./types";
 import { formatEther, formatUnits } from "viem";
+import { HighlightedCell } from "~~/components/oracle/HighlightedCell";
 import { Address } from "~~/components/scaffold-eth";
 import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
 
 export const NodeRow = ({ address }: NodeRowProps) => {
-  const { nodeInfo, highlights } = useNodeData(address);
-
   const { data = [] } = useScaffoldReadContract({
     contractName: "StakeBasedOracle",
     functionName: "nodes",
@@ -23,21 +20,22 @@ export const NodeRow = ({ address }: NodeRowProps) => {
 
   const [_, stakedAmount, lastReportedPrice] = data;
 
+  const stakedAmountFormatted = stakedAmount !== undefined ? formatEther(stakedAmount) : "Loading...";
+  const lastReportedPriceFormatted =
+    lastReportedPrice !== undefined ? formatUnits(lastReportedPrice, 6) : "No price reported";
+  const orcBalanceFormatted = orcBalance !== undefined ? formatEther(orcBalance) : "Loading...";
+
   return (
     <tr>
       <td>
         <Address address={address} />
       </td>
-      <HighlightedCell highlight={highlights.price}>
-        {stakedAmount !== undefined ? formatEther(stakedAmount) : "Loading..."}
-      </HighlightedCell>
-      <HighlightedCell highlight={highlights.price}>
-        {lastReportedPrice !== undefined ? formatUnits(lastReportedPrice, 6) : "No price reported"}
-      </HighlightedCell>
-      <HighlightedCell highlight={highlights.orcBalance}>
-        {orcBalance !== undefined ? formatEther(orcBalance) : "Loading..."}
-      </HighlightedCell>
-      <ProbabilitySlider nodeAddress={address} />
+      <HighlightedCell value={stakedAmountFormatted}>{stakedAmountFormatted}</HighlightedCell>
+      <HighlightedCell value={lastReportedPriceFormatted}>{lastReportedPriceFormatted}</HighlightedCell>
+      <HighlightedCell value={orcBalanceFormatted}>{orcBalanceFormatted}</HighlightedCell>
+      <td>
+        <ProbabilitySlider nodeAddress={address.toLowerCase()} />
+      </td>
     </tr>
   );
 };
