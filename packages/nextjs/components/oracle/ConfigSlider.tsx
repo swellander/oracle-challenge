@@ -1,30 +1,32 @@
 import { useEffect, useState } from "react";
 
-interface ProbabilitySliderProps {
+interface ConfigSliderProps {
   nodeAddress: string;
+  endpoint: string;
+  label: string;
 }
 
-export const ProbabilitySlider = ({ nodeAddress }: ProbabilitySliderProps) => {
-  const [value, setValue] = useState<number>(0.05);
+export const ConfigSlider = ({ nodeAddress, endpoint, label }: ConfigSliderProps) => {
+  const [value, setValue] = useState<number>(0.0);
   const [isLoading, setIsLoading] = useState(false);
-  const [localValue, setLocalValue] = useState<number>(0.05);
+  const [localValue, setLocalValue] = useState<number>(0.0);
 
   // Fetch initial value
   useEffect(() => {
-    const fetchProbability = async () => {
+    const fetchValue = async () => {
       try {
-        const response = await fetch(`/api/config/skip-probability?nodeAddress=${nodeAddress}`);
+        const response = await fetch(`/api/config/${endpoint}?nodeAddress=${nodeAddress}`);
         const data = await response.json();
         if (data.value !== undefined) {
           setValue(data.value);
           setLocalValue(data.value);
         }
       } catch (error) {
-        console.error("Error fetching skip probability:", error);
+        console.error(`Error fetching ${endpoint}:`, error);
       }
     };
-    fetchProbability();
-  }, [nodeAddress]);
+    fetchValue();
+  }, [nodeAddress, endpoint]);
 
   const handleChange = (newValue: number) => {
     setLocalValue(newValue);
@@ -35,7 +37,7 @@ export const ProbabilitySlider = ({ nodeAddress }: ProbabilitySliderProps) => {
 
     setIsLoading(true);
     try {
-      const response = await fetch("/api/config/skip-probability", {
+      const response = await fetch(`/api/config/${endpoint}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -45,13 +47,12 @@ export const ProbabilitySlider = ({ nodeAddress }: ProbabilitySliderProps) => {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || "Failed to update probability");
+        throw new Error(error.message || `Failed to update ${endpoint}`);
       }
       setValue(localValue); // Update the committed value after successful API call
     } catch (error) {
-      console.error("Error updating skip probability:", error);
+      console.error(`Error updating ${endpoint}:`, error);
       setLocalValue(value); // Reset to last known good value on error
-      // Optionally show an error toast/notification here
     } finally {
       setIsLoading(false);
     }
@@ -71,7 +72,7 @@ export const ProbabilitySlider = ({ nodeAddress }: ProbabilitySliderProps) => {
         className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
       />
       <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 text-center">
-        {(localValue * 100).toFixed(0)}% skip rate
+        {(localValue * 100).toFixed(0)}% {label}
       </div>
       {isLoading && (
         <div className="absolute inset-0 bg-white/50 dark:bg-black/50 flex items-center justify-center">

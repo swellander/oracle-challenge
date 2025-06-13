@@ -20,6 +20,7 @@ export const NodesTable = () => {
                 <th>Last Reported Price (USD)</th>
                 <th>ORC Balance</th>
                 <th>Skip Probability</th>
+                <th>Price Variance</th>
               </tr>
             </thead>
             <tbody>

@@ -1,4 +1,4 @@
-import { ProbabilitySlider } from "./ProbabilitySlider";
+import { ConfigSlider } from "./ConfigSlider";
 import { NodeRowProps } from "./types";
 import { formatEther, formatUnits } from "viem";
 import { HighlightedCell } from "~~/components/oracle/HighlightedCell";
@@ -33,9 +33,8 @@ export const NodeRow = ({ address }: NodeRowProps) => {
       <HighlightedCell value={stakedAmountFormatted}>{stakedAmountFormatted}</HighlightedCell>
       <HighlightedCell value={lastReportedPriceFormatted}>{lastReportedPriceFormatted}</HighlightedCell>
       <HighlightedCell value={orcBalanceFormatted}>{orcBalanceFormatted}</HighlightedCell>
-      <td>
-        <ProbabilitySlider nodeAddress={address.toLowerCase()} />
-      </td>
+      <ConfigSlider nodeAddress={address.toLowerCase()} endpoint="skip-probability" label="skip rate" />
+      <ConfigSlider nodeAddress={address.toLowerCase()} endpoint="price-variance" label="variance" />
     </tr>
   );
 };
