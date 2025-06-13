@@ -12,7 +12,6 @@ const getConfig = (): Config => {
   const configPath = path.join(__dirname, "config.json");
   const configContent = fs.readFileSync(configPath, "utf-8");
   const config = JSON.parse(configContent) as Config;
-  console.log("Current config:", JSON.stringify(config, null, 2));
   return config;
 };
 
