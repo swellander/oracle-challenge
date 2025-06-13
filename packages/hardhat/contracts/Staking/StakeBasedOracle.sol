@@ -18,7 +18,7 @@ contract StakeBasedOracle {
     address[] public nodeAddresses;
 
     uint256 public constant MINIMUM_STAKE = 10 ether;
-    uint256 public constant STALE_DATA_WINDOW = 15 seconds;
+    uint256 public constant STALE_DATA_WINDOW = 5 seconds;
 
     event NodeRegistered(address indexed node, uint256 stakedAmount);
     event PriceReported(address indexed node, uint256 price);
