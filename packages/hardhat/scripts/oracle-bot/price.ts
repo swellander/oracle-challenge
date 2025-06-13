@@ -11,16 +11,19 @@ const getConfig = (): Config => {
 export const getRandomPrice = (nodeAddress: string): number => {
   const config = getConfig();
   const nodeConfig = config.NODE_CONFIGS[nodeAddress] || config.NODE_CONFIGS.default;
-  const isOutlier = Math.random() < nodeConfig.PROBABILITY_OF_OUTLIER_PRICE;
 
-  if (isOutlier) {
-    return (
-      Math.floor(Math.random() * (config.PRICE_RANGE.OUTLIER.MAX - config.PRICE_RANGE.OUTLIER.MIN + 1)) +
-      config.PRICE_RANGE.OUTLIER.MIN
-    );
-  }
-  return (
-    Math.floor(Math.random() * (config.PRICE_RANGE.NORMAL.MAX - config.PRICE_RANGE.NORMAL.MIN + 1)) +
-    config.PRICE_RANGE.NORMAL.MIN
-  );
+  // Get base price range
+  const baseMin = config.PRICE_RANGE.BASE.MIN;
+  const baseMax = config.PRICE_RANGE.BASE.MAX;
+  const basePrice = Math.floor(Math.random() * (baseMax - baseMin + 1)) + baseMin;
+
+  // Calculate variance range based on the node's PRICE_VARIANCE
+  // PRICE_VARIANCE of 0 means no variance, higher values mean wider range
+  const varianceRange = Math.floor(basePrice * nodeConfig.PRICE_VARIANCE);
+
+  // Apply variance to the base price
+  const finalPrice = basePrice + (Math.random() * 2 - 1) * varianceRange;
+
+  // Round to nearest integer
+  return Math.round(finalPrice);
 };

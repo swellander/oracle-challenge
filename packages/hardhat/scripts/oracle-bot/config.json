@@ -1,12 +1,8 @@
 {
   "PRICE_RANGE": {
-    "NORMAL": {
-      "MIN": 2005,
-      "MAX": 2005
-    },
-    "OUTLIER": {
-      "MIN": 1870,
-      "MAX": 1892
+    "BASE": {
+      "MIN": 2000,
+      "MAX": 2000
     }
   },
   "INTERVALS": {

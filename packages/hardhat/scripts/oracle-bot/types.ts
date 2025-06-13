@@ -1,6 +1,6 @@
 interface NodeConfig {
   PROBABILITY_OF_SKIPPING_REPORT: number;
-  PROBABILITY_OF_OUTLIER_PRICE: number;
+  PRICE_VARIANCE: number; // Higher number means wider price range
 }
 
 interface PriceRange {
@@ -10,8 +10,7 @@ interface PriceRange {
 
 export interface Config {
   PRICE_RANGE: {
-    NORMAL: PriceRange;
-    OUTLIER: PriceRange;
+    BASE: PriceRange; // Base price range that will be modified by variance
   };
   INTERVALS: {
     PRICE_REPORT: number;
