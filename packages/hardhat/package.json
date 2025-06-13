@@ -7,7 +7,7 @@
     "account:import": "hardhat run scripts/importAccount.ts",
     "console": "hardhat console",
     "simpleBots": "hardhat run scripts/runMedianOracleBots.ts",
-    "bots": "hardhat run scripts/runOracleBots.ts",
+    "simulate": "hardhat run scripts/runOracleBots.ts",
     "chain": "hardhat node --network hardhat --no-deploy",
     "check-types": "tsc --noEmit --incremental",
     "clean": "hardhat clean",
