@@ -52,7 +52,7 @@ contract StakeBasedOracle {
 
     function reportPrice(uint256 price) public {
         OracleNode storage node = nodes[msg.sender];
-        require(node.stakedAmount >= MINIMUM_STAKE, "Not a registered node");
+        require(node.stakedAmount >= MINIMUM_STAKE, "Not enough stake");
 
         node.lastReportedPrice = price;
         node.lastReportedTimestamp = block.timestamp;
@@ -67,11 +67,10 @@ contract StakeBasedOracle {
 
     function slashNode(address nodeToSlash, uint256 penalty) internal {
         OracleNode storage node = nodes[nodeToSlash];
+        uint256 actualPenalty = penalty > node.stakedAmount ? node.stakedAmount : penalty;
+        node.stakedAmount -= actualPenalty;
 
-        require(node.stakedAmount >= penalty, "Penalty exceeds stake");
-        node.stakedAmount -= penalty;
-
-        emit NodeSlashed(nodeToSlash, penalty);
+        emit NodeSlashed(nodeToSlash, actualPenalty);
     }
 
     function validateNodes() public {
