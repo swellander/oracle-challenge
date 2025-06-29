@@ -18,6 +18,12 @@ export const NodeRow = ({ address }: NodeRowProps) => {
     args: [address],
   });
 
+  const { data: minimumStake } = useScaffoldReadContract({
+    contractName: "StakeBasedOracle",
+    functionName: "MINIMUM_STAKE",
+    args: undefined,
+  });
+
   const [_, stakedAmount, lastReportedPrice] = data;
 
   const stakedAmountFormatted = stakedAmount !== undefined ? formatEther(stakedAmount) : "Loading...";
@@ -25,8 +31,11 @@ export const NodeRow = ({ address }: NodeRowProps) => {
     lastReportedPrice !== undefined ? formatUnits(lastReportedPrice, 6) : "No price reported";
   const orcBalanceFormatted = orcBalance !== undefined ? formatEther(orcBalance) : "Loading...";
 
+  // Check if staked amount is below minimum requirement
+  const isInsufficientStake = stakedAmount !== undefined && minimumStake !== undefined && stakedAmount < minimumStake;
+
   return (
-    <tr>
+    <tr className={isInsufficientStake ? "bg-gray-300 opacity-50" : ""}>
       <td>
         <Address address={address} />
       </td>
