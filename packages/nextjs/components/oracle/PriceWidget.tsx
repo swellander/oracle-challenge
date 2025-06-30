@@ -38,11 +38,17 @@ export const PriceWidget = () => {
   return (
     <div className="flex flex-col gap-2">
       <h2 className="text-xl font-bold">Current Price</h2>
-      <div className="bg-base-100 rounded-lg p-4 w-full relative">
+      <div className="bg-base-100 rounded-lg p-4 w-1/2 md:w-1/4 mx-auto flex justify-center items-center relative">
         <TooltipInfo top={0} right={0} infoText="TODO: Update this tooltip" />
-        <div className={`p-4 rounded-lg transition-colors duration-1000 ${highlight ? highlightColor : ""}`}>
-          <div className="text-2xl font-bold">
-            {currentPrice !== undefined ? `$${formatUnits(currentPrice, 6)}` : "Loading..."}
+        <div className={`rounded-lg transition-colors duration-1000 ${highlight ? highlightColor : ""}`}>
+          <div className="text-4xl font-bold">
+            {currentPrice !== undefined ? (
+              `$${formatUnits(currentPrice, 6)}`
+            ) : (
+              <div className="animate-pulse">
+                <div className="h-10 bg-secondary rounded-md w-32"></div>
+              </div>
+            )}
           </div>
         </div>
       </div>
