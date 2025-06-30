@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import TooltipInfo from "../TooltipInfo";
 import { formatUnits } from "viem";
 import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
 
@@ -37,7 +38,8 @@ export const PriceWidget = () => {
   return (
     <div className="flex flex-col gap-2">
       <h2 className="text-xl font-bold">Current Price</h2>
-      <div className="bg-base-100 rounded-lg p-4 inline-block">
+      <div className="bg-base-100 rounded-lg p-4 w-full relative">
+        <TooltipInfo top={0} right={0} infoText="TODO: Update this tooltip" />
         <div className={`p-4 rounded-lg transition-colors duration-1000 ${highlight ? highlightColor : ""}`}>
           <div className="text-2xl font-bold">
             {currentPrice !== undefined ? `$${formatUnits(currentPrice, 6)}` : "Loading..."}
