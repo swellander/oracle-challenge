@@ -4,7 +4,7 @@ pragma solidity >=0.8.0 <0.9.0;
 import "./SimpleOracle.sol";
 import { Arrays } from "@openzeppelin/contracts/utils/Arrays.sol";
 
-contract MedianOracle {
+contract WhitelistOracle {
     address public owner;
     SimpleOracle[] public oracles;
 
@@ -71,4 +71,4 @@ contract MedianOracle {
 
         return median;
     }
-}
+} 
