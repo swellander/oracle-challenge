@@ -71,4 +71,4 @@ contract WhitelistOracle {
 
         return median;
     }
-} 
+}
