@@ -1,10 +1,6 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
-async function mineBlock(timestamp) {
-  await ethers.provider.send("evm_mine", timestamp ? [timestamp] : []);
-}
-
 describe("WhitelistOracle", function () {
   let whitelistOracle;
   let owner;
@@ -16,7 +12,6 @@ describe("WhitelistOracle", function () {
     const WhitelistOracleFactory = await ethers.getContractFactory("WhitelistOracle");
     simpleOracleFactory = await ethers.getContractFactory("SimpleOracle");
     whitelistOracle = await WhitelistOracleFactory.deploy();
-    await mineBlock();
   });
 
   it("Should deploy and set owner", async function () {
@@ -25,17 +20,70 @@ describe("WhitelistOracle", function () {
 
   it("Should allow owner to add and remove oracles", async function () {
     const oracle = await simpleOracleFactory.deploy(owner.address);
-    await mineBlock();
 
     await whitelistOracle.addOracle(oracle.target);
-    await mineBlock();
 
     expect(await whitelistOracle.oracles(0)).to.equal(oracle.target);
 
     await whitelistOracle.removeOracle(0);
-    await mineBlock();
 
     await expect(whitelistOracle.oracles(0)).to.be.reverted;
+  });
+
+  it("Should not allow non-owner to add oracle", async function () {
+    const oracle = await simpleOracleFactory.deploy(owner.address);
+    
+    await expect(
+      whitelistOracle.connect(nonOwner).addOracle(oracle.target)
+    ).to.be.revertedWith("Not the owner");
+  });
+
+  it("Should not allow non-owner to remove oracle", async function () {
+    const oracle = await simpleOracleFactory.deploy(owner.address);
+    
+    await whitelistOracle.connect(owner).addOracle(oracle.target);
+    
+    await expect(
+      whitelistOracle.connect(nonOwner).removeOracle(0)
+    ).to.be.revertedWith("Not the owner");
+  });
+
+  it("Should emit OracleAdded event when an oracle is added", async function () {
+    const oracle = await simpleOracleFactory.deploy(owner.address);
+
+    const tx = await whitelistOracle.addOracle(oracle.target);
+    const receipt = await tx.wait();
+
+    await expect(receipt)
+      .to.emit(whitelistOracle, "OracleAdded")
+      .withArgs(oracle.target);
+  });
+
+  it("Should emit OracleRemoved event when an oracle is removed", async function () {
+    const oracle = await simpleOracleFactory.deploy(owner.address);
+
+    await whitelistOracle.addOracle(oracle.target);
+
+    await expect(whitelistOracle.removeOracle(0))
+      .to.emit(whitelistOracle, "OracleRemoved")
+      .withArgs(oracle.target);
+  });
+
+  it("Should revert when trying to remove an oracle when none have been added", async function () {
+    await expect(whitelistOracle.removeOracle(0)).to.be.revertedWith("Index out of bounds");
+  });
+
+  it("Should revert when trying to remove an oracle with a non-existent index", async function () {
+    const oracle = await simpleOracleFactory.deploy(owner.address);
+
+    await whitelistOracle.addOracle(oracle.target);
+
+    await expect(whitelistOracle.removeOracle(1)).to.be.revertedWith("Index out of bounds");
+
+    await whitelistOracle.removeOracle(0);
+
+    await expect(whitelistOracle.removeOracle(0)).to.be.revertedWith("Index out of bounds");
+    await expect(whitelistOracle.removeOracle(999)).to.be.revertedWith("Index out of bounds");
   });
 
   it("Should revert getPrice if no oracles", async function () {
@@ -47,45 +95,103 @@ describe("WhitelistOracle", function () {
     const now = Math.floor(Date.now() / 1000);
     
     await whitelistOracle.addOracle(oracle.target);
-    await mineBlock();
     
     await oracle.connect(owner).setPrice(1000n);
-    await mineBlock();
-    await mineBlock();
     
     const price = await whitelistOracle.getPrice();
     expect(price).to.equal(1000n);
   });
 
-  it("Should return correct median price with multiple oracles", async function () {
+  it("Should return correct median price with odd number of oracles", async function () {
     const oracle1 = await simpleOracleFactory.deploy(owner.address);
-    await mineBlock();
     const oracle2 = await simpleOracleFactory.deploy(owner.address);
-    await mineBlock();
     const oracle3 = await simpleOracleFactory.deploy(owner.address);
-    await mineBlock();
     
     await whitelistOracle.addOracle(oracle1.target);
-    await mineBlock();
     await whitelistOracle.addOracle(oracle2.target);
-    await mineBlock();
     await whitelistOracle.addOracle(oracle3.target);
-    await mineBlock();
     
     const price1 = 1000n;
     const price2 = 3000n;
     const price3 = 2000n;
     
     await oracle1.connect(owner).setPrice(price1);
-    await mineBlock();
     
     await oracle2.connect(owner).setPrice(price2);
-    await mineBlock();
     
     await oracle3.connect(owner).setPrice(price3);
-    await mineBlock();
     
     const medianPrice = await whitelistOracle.getPrice();
     expect(medianPrice).to.equal(2000n);
+  });
+
+  it("Should return correct median price with even number of oracles", async function () {
+    const oracle1 = await simpleOracleFactory.deploy(owner.address);
+    const oracle2 = await simpleOracleFactory.deploy(owner.address);
+    const oracle3 = await simpleOracleFactory.deploy(owner.address);
+    const oracle4 = await simpleOracleFactory.deploy(owner.address);
+    
+    await whitelistOracle.addOracle(oracle1.target);
+    await whitelistOracle.addOracle(oracle2.target);
+    await whitelistOracle.addOracle(oracle3.target);
+    await whitelistOracle.addOracle(oracle4.target);
+    
+    const price1 = 1000n;
+    const price2 = 3000n;
+    const price3 = 2000n;
+    const price4 = 4000n;
+    
+    await oracle1.connect(owner).setPrice(price1);
+    await oracle2.connect(owner).setPrice(price2);
+    await oracle3.connect(owner).setPrice(price3);
+    await oracle4.connect(owner).setPrice(price4);
+    
+    const medianPrice = await whitelistOracle.getPrice();
+    expect(medianPrice).to.equal(2500n);
+  });
+
+  it("Should exclude price reports older than 10 seconds from median calculation", async function () {
+    const oracle1 = await simpleOracleFactory.deploy(owner.address);
+    const oracle2 = await simpleOracleFactory.deploy(owner.address);
+    const oracle3 = await simpleOracleFactory.deploy(owner.address);
+    
+    await whitelistOracle.addOracle(oracle1.target);
+    await whitelistOracle.addOracle(oracle2.target);
+    await whitelistOracle.addOracle(oracle3.target);
+    
+    await oracle1.connect(owner).setPrice(1000n);
+    await oracle2.connect(owner).setPrice(2000n);
+    await oracle3.connect(owner).setPrice(3000n);
+    
+    let medianPrice = await whitelistOracle.getPrice();
+    expect(medianPrice).to.equal(2000n);
+    
+    await ethers.provider.send("evm_increaseTime", [11]);
+    await ethers.provider.send("evm_mine");
+    
+    await oracle1.connect(owner).setPrice(5000n);
+    await oracle2.connect(owner).setPrice(3000n);
+    
+    medianPrice = await whitelistOracle.getPrice();
+    expect(medianPrice).to.equal(4000n);
+  });
+
+  it("Should revert when all price reports are older than 10 seconds", async function () {
+    const oracle1 = await simpleOracleFactory.deploy(owner.address);
+    const oracle2 = await simpleOracleFactory.deploy(owner.address);
+    
+    await whitelistOracle.addOracle(oracle1.target);
+    await whitelistOracle.addOracle(oracle2.target);
+    
+    await oracle1.connect(owner).setPrice(1000n);
+    await oracle2.connect(owner).setPrice(2000n);
+    
+    let medianPrice = await whitelistOracle.getPrice();
+    expect(medianPrice).to.equal(1500n);
+    
+    await ethers.provider.send("evm_increaseTime", [11]);
+    await ethers.provider.send("evm_mine");
+    
+    await expect(whitelistOracle.getPrice()).to.be.revertedWith("No valid prices available");
   });
 }); 
