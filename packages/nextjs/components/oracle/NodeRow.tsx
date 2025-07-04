@@ -24,7 +24,7 @@ export const NodeRow = ({ address }: NodeRowProps) => {
     args: undefined,
   });
 
-  const [_, stakedAmount, lastReportedPrice] = data;
+  const [, stakedAmount, lastReportedPrice] = data;
 
   const stakedAmountFormatted = stakedAmount !== undefined ? formatEther(stakedAmount) : "Loading...";
   const lastReportedPriceFormatted =
