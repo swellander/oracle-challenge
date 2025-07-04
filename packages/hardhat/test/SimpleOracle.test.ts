@@ -1,10 +1,10 @@
-const { expect } = require("chai");
-const { ethers } = require("hardhat");
+import { expect } from "chai";
+import { ethers } from "hardhat";
 
 describe("SimpleOracle", function () {
-  let oracle;
-  let owner;
-  let nonOwner;
+  let oracle: any;
+  let owner: any;
+  let nonOwner: any;
 
   beforeEach(async function () {
     [owner, nonOwner] = await ethers.getSigners();
@@ -12,7 +12,8 @@ describe("SimpleOracle", function () {
     oracle = await SimpleOracleFactory.deploy(owner.address);
   });
 
-  it("Should deploy successfully", async function () {
+  it("Should deploy successfully", function () {
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(oracle.target).to.not.be.undefined;
   });
 
@@ -38,17 +39,13 @@ describe("SimpleOracle", function () {
 
   it("Should reject setPrice from non-owner", async function () {
     const newPrice = 1500n;
-    await expect(
-      oracle.connect(nonOwner).setPrice(newPrice)
-    ).to.be.revertedWith("Not the owner");
+    await expect(oracle.connect(nonOwner).setPrice(newPrice)).to.be.revertedWith("Not the owner");
   });
 
   it("Should emit PriceUpdated event", async function () {
     const newPrice = 1500n;
     const tx = await oracle.connect(owner).setPrice(newPrice);
-    expect(tx)
-      .to.emit(oracle, "PriceUpdated")
-      .withArgs(newPrice);
+    expect(tx).to.emit(oracle, "PriceUpdated").withArgs(newPrice);
   });
 
   it("Should return correct price and timestamp from getPrice", async function () {
@@ -56,7 +53,7 @@ describe("SimpleOracle", function () {
     await oracle.connect(owner).setPrice(newPrice);
     const [retrievedPrice, retrievedTimestamp] = await oracle.getPrice();
     expect(retrievedPrice).to.equal(newPrice);
-    expect(retrievedTimestamp).to.be.a('bigint');
+    expect(retrievedTimestamp).to.be.a("bigint");
     expect(retrievedTimestamp).to.be.greaterThan(0n);
   });
-}); 
+});

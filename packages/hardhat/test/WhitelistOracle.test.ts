@@ -1,5 +1,5 @@
-const { expect } = require("chai");
-const { ethers } = require("hardhat");
+import { expect } from "chai";
+import { ethers } from "hardhat";
 
 describe("WhitelistOracle", function () {
   let whitelistOracle;
@@ -32,20 +32,16 @@ describe("WhitelistOracle", function () {
 
   it("Should not allow non-owner to add oracle", async function () {
     const oracle = await simpleOracleFactory.deploy(owner.address);
-    
-    await expect(
-      whitelistOracle.connect(nonOwner).addOracle(oracle.target)
-    ).to.be.revertedWith("Not the owner");
+
+    await expect(whitelistOracle.connect(nonOwner).addOracle(oracle.target)).to.be.revertedWith("Not the owner");
   });
 
   it("Should not allow non-owner to remove oracle", async function () {
     const oracle = await simpleOracleFactory.deploy(owner.address);
-    
+
     await whitelistOracle.connect(owner).addOracle(oracle.target);
-    
-    await expect(
-      whitelistOracle.connect(nonOwner).removeOracle(0)
-    ).to.be.revertedWith("Not the owner");
+
+    await expect(whitelistOracle.connect(nonOwner).removeOracle(0)).to.be.revertedWith("Not the owner");
   });
 
   it("Should emit OracleAdded event when an oracle is added", async function () {
@@ -54,9 +50,7 @@ describe("WhitelistOracle", function () {
     const tx = await whitelistOracle.addOracle(oracle.target);
     const receipt = await tx.wait();
 
-    await expect(receipt)
-      .to.emit(whitelistOracle, "OracleAdded")
-      .withArgs(oracle.target);
+    await expect(receipt).to.emit(whitelistOracle, "OracleAdded").withArgs(oracle.target);
   });
 
   it("Should emit OracleRemoved event when an oracle is removed", async function () {
@@ -64,9 +58,7 @@ describe("WhitelistOracle", function () {
 
     await whitelistOracle.addOracle(oracle.target);
 
-    await expect(whitelistOracle.removeOracle(0))
-      .to.emit(whitelistOracle, "OracleRemoved")
-      .withArgs(oracle.target);
+    await expect(whitelistOracle.removeOracle(0)).to.emit(whitelistOracle, "OracleRemoved").withArgs(oracle.target);
   });
 
   it("Should revert when trying to remove an oracle when none have been added", async function () {
@@ -92,12 +84,11 @@ describe("WhitelistOracle", function () {
 
   it("Should return correct price with one oracle", async function () {
     const oracle = await simpleOracleFactory.deploy(owner.address);
-    const now = Math.floor(Date.now() / 1000);
-    
+
     await whitelistOracle.addOracle(oracle.target);
-    
+
     await oracle.connect(owner).setPrice(1000n);
-    
+
     const price = await whitelistOracle.getPrice();
     expect(price).to.equal(1000n);
   });
@@ -106,21 +97,21 @@ describe("WhitelistOracle", function () {
     const oracle1 = await simpleOracleFactory.deploy(owner.address);
     const oracle2 = await simpleOracleFactory.deploy(owner.address);
     const oracle3 = await simpleOracleFactory.deploy(owner.address);
-    
+
     await whitelistOracle.addOracle(oracle1.target);
     await whitelistOracle.addOracle(oracle2.target);
     await whitelistOracle.addOracle(oracle3.target);
-    
+
     const price1 = 1000n;
     const price2 = 3000n;
     const price3 = 2000n;
-    
+
     await oracle1.connect(owner).setPrice(price1);
-    
+
     await oracle2.connect(owner).setPrice(price2);
-    
+
     await oracle3.connect(owner).setPrice(price3);
-    
+
     const medianPrice = await whitelistOracle.getPrice();
     expect(medianPrice).to.equal(2000n);
   });
@@ -130,22 +121,22 @@ describe("WhitelistOracle", function () {
     const oracle2 = await simpleOracleFactory.deploy(owner.address);
     const oracle3 = await simpleOracleFactory.deploy(owner.address);
     const oracle4 = await simpleOracleFactory.deploy(owner.address);
-    
+
     await whitelistOracle.addOracle(oracle1.target);
     await whitelistOracle.addOracle(oracle2.target);
     await whitelistOracle.addOracle(oracle3.target);
     await whitelistOracle.addOracle(oracle4.target);
-    
+
     const price1 = 1000n;
     const price2 = 3000n;
     const price3 = 2000n;
     const price4 = 4000n;
-    
+
     await oracle1.connect(owner).setPrice(price1);
     await oracle2.connect(owner).setPrice(price2);
     await oracle3.connect(owner).setPrice(price3);
     await oracle4.connect(owner).setPrice(price4);
-    
+
     const medianPrice = await whitelistOracle.getPrice();
     expect(medianPrice).to.equal(2500n);
   });
@@ -154,24 +145,24 @@ describe("WhitelistOracle", function () {
     const oracle1 = await simpleOracleFactory.deploy(owner.address);
     const oracle2 = await simpleOracleFactory.deploy(owner.address);
     const oracle3 = await simpleOracleFactory.deploy(owner.address);
-    
+
     await whitelistOracle.addOracle(oracle1.target);
     await whitelistOracle.addOracle(oracle2.target);
     await whitelistOracle.addOracle(oracle3.target);
-    
+
     await oracle1.connect(owner).setPrice(1000n);
     await oracle2.connect(owner).setPrice(2000n);
     await oracle3.connect(owner).setPrice(3000n);
-    
+
     let medianPrice = await whitelistOracle.getPrice();
     expect(medianPrice).to.equal(2000n);
-    
+
     await ethers.provider.send("evm_increaseTime", [11]);
     await ethers.provider.send("evm_mine");
-    
+
     await oracle1.connect(owner).setPrice(5000n);
     await oracle2.connect(owner).setPrice(3000n);
-    
+
     medianPrice = await whitelistOracle.getPrice();
     expect(medianPrice).to.equal(4000n);
   });
@@ -179,19 +170,19 @@ describe("WhitelistOracle", function () {
   it("Should revert when all price reports are older than 10 seconds", async function () {
     const oracle1 = await simpleOracleFactory.deploy(owner.address);
     const oracle2 = await simpleOracleFactory.deploy(owner.address);
-    
+
     await whitelistOracle.addOracle(oracle1.target);
     await whitelistOracle.addOracle(oracle2.target);
-    
+
     await oracle1.connect(owner).setPrice(1000n);
     await oracle2.connect(owner).setPrice(2000n);
-    
-    let medianPrice = await whitelistOracle.getPrice();
+
+    const medianPrice = await whitelistOracle.getPrice();
     expect(medianPrice).to.equal(1500n);
-    
+
     await ethers.provider.send("evm_increaseTime", [11]);
     await ethers.provider.send("evm_mine");
-    
+
     await expect(whitelistOracle.getPrice()).to.be.revertedWith("No valid prices available");
   });
-}); 
+});
