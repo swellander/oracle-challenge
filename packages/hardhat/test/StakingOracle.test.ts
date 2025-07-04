@@ -2,8 +2,8 @@
 // const { ethers } = require("hardhat");
 // const { time } = require("@nomicfoundation/hardhat-network-helpers");
 
-// describe("StakeBasedOracle", function () {
-//   let StakeBasedOracle;
+// describe.only("StakingOracle", function () {
+//   let StakingOracle;
 //   let oracle;
 //   let orcToken;
 //   let owner;
@@ -20,8 +20,8 @@
 //     [owner, node1, node2, node3, ...addrs] = await ethers.getSigners();
 
 //     // Deploy the oracle contract (which will also deploy the ORC token)
-//     const StakeBasedOracleFactory = await ethers.getContractFactory("StakeBasedOracle");
-//     oracle = await StakeBasedOracleFactory.deploy();
+//     const StakingOracleFactory = await ethers.getContractFactory("StakingOracle");
+//     oracle = await StakingOracleFactory.deploy();
 
 //     // Get the ORC token instance
 //     const orcTokenAddress = await oracle.oracleToken();

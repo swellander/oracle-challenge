@@ -4,7 +4,7 @@ pragma solidity >=0.8.0 <0.9.0;
 import { Arrays } from "@openzeppelin/contracts/utils/Arrays.sol";
 import "./OracleToken.sol";
 
-contract StakeBasedOracle {
+contract StakingOracle {
     ORC public oracleToken;
 
     struct OracleNode {

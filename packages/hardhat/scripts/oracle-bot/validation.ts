@@ -1,5 +1,5 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import oracleDeployment from "../../deployments/localhost/StakeBasedOracle.json";
+import oracleDeployment from "../../deployments/localhost/StakingOracle.json";
 
 const { abi, address } = oracleDeployment as { abi: any; address: `0x${string}` };
 
