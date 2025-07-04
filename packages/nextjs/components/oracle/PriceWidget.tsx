@@ -21,7 +21,7 @@ export const PriceWidget = () => {
   const { data: currentPrice } = useScaffoldReadContract({
     contractName: "StakeBasedOracle",
     functionName: "getPrice",
-  });
+  }) as { data: bigint | undefined };
 
   useEffect(() => {
     if (currentPrice !== undefined && prevPrice.current !== undefined && currentPrice !== prevPrice.current) {
