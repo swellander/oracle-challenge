@@ -5,11 +5,11 @@ async function main() {
   const provider = ethers.provider;
 
   console.log("\nChecking mempool state:");
-  
+
   // Get pending transactions
   const pendingBlock = await provider.send("eth_getBlockByNumber", ["pending", true]);
   console.log(`Number of pending transactions: ${pendingBlock.transactions.length}`);
-  
+
   if (pendingBlock.transactions.length > 0) {
     console.log("\nPending transactions:");
     for (const tx of pendingBlock.transactions) {
@@ -36,7 +36,7 @@ async function main() {
   }
 }
 
-main().catch((error) => {
+main().catch(error => {
   console.error(error);
   process.exitCode = 1;
-}); 
+});

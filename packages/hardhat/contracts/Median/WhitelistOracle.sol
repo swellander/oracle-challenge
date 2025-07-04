@@ -4,7 +4,7 @@ pragma solidity >=0.8.0 <0.9.0;
 import "./SimpleOracle.sol";
 import { Arrays } from "@openzeppelin/contracts/utils/Arrays.sol";
 
-contract MedianOracle {
+contract WhitelistOracle {
     address public owner;
     SimpleOracle[] public oracles;
 
@@ -59,14 +59,19 @@ contract MedianOracle {
 
         require(validCount > 0, "No valid prices available");
 
-        Arrays.sort(prices);
+        uint256[] memory validPrices = new uint256[](validCount);
+        for (uint256 i = 0; i < validCount; i++) {
+            validPrices[i] = prices[i];
+        }
+
+        Arrays.sort(validPrices);
 
         uint256 median;
-        if (prices.length % 2 == 0) {
-            uint256 midIndex = prices.length / 2;
-            median = (prices[midIndex - 1] + prices[midIndex]) / 2;
+        if (validCount % 2 == 0) {
+            uint256 midIndex = validCount / 2;
+            median = (validPrices[midIndex - 1] + validPrices[midIndex]) / 2;
         } else {
-            median = prices[prices.length / 2];
+            median = validPrices[validCount / 2];
         }
 
         return median;
