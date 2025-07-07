@@ -1,6 +1,7 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { parseUnits } from "viem";
+import { fetchPriceFromUniswap } from "../scripts/fetchPriceFromUniswap";
 
 /**
  * Deploys SimpleOracle instances and a WhitelistOracle contract using viem
@@ -69,7 +70,7 @@ const deployWhitelistOracleContracts: DeployFunction = async function (hre: Hard
     const simpleOracleDeployment = await hre.deployments.get(`SimpleOracle_${i + 1}`);
     const simpleOracleAbi = simpleOracleDeployment.abi;
     const simpleOracleAddress = simpleOracleDeployment.address as `0x${string}`;
-    const initialPrice = 2000;
+    const initialPrice = await fetchPriceFromUniswap();
     await account.writeContract({
       address: simpleOracleAddress,
       abi: simpleOracleAbi,

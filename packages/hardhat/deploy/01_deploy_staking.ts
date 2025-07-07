@@ -1,6 +1,7 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { parseEther, parseUnits } from "viem";
+import { formatEther, parseEther, parseUnits } from "viem";
+import { fetchPriceFromUniswap } from "../scripts/fetchPriceFromUniswap";
 
 const deployStakingOracle: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deployer } = await hre.getNamedAccounts();
@@ -31,6 +32,7 @@ const deployStakingOracle: DeployFunction = async function (hre: HardhatRuntimeE
     args: [],
   });
   console.log("ORC Token deployed at:", orcTokenAddress);
+  const initialPrice = Number(formatEther(await fetchPriceFromUniswap())).toFixed(0);
 
   await Promise.all(
     nodeAccounts.map(account => {
@@ -54,7 +56,7 @@ const deployStakingOracle: DeployFunction = async function (hre: HardhatRuntimeE
         address: stakeOracleAddress,
         abi: deployment.abi,
         functionName: "reportPrice",
-        args: [parseUnits("2000", 6)],
+        args: [parseUnits(initialPrice.toString(), 6)],
       });
     }),
   );
