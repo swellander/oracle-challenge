@@ -1,6 +1,5 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { parseUnits } from "viem";
 import { fetchPriceFromUniswap } from "../scripts/fetchPriceFromUniswap";
 
 /**
@@ -75,7 +74,7 @@ const deployWhitelistOracleContracts: DeployFunction = async function (hre: Hard
       address: simpleOracleAddress,
       abi: simpleOracleAbi,
       functionName: "setPrice",
-      args: [parseUnits(initialPrice.toString(), 0)],
+      args: [initialPrice],
     });
 
     await publicClient.transport.request({

@@ -1,4 +1,4 @@
-import { parseUnits, PublicClient } from "viem";
+import { PublicClient } from "viem";
 import { Config } from "./types";
 import { getRandomPrice } from "./price";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
@@ -53,7 +53,7 @@ export const reportPrices = async (hre: HardhatRuntimeEnvironment) => {
         }
 
         if (shouldReport) {
-          const price = parseUnits(getRandomPrice(account.account.address).toString(), 6);
+          const price = BigInt(await getRandomPrice(account.account.address));
           console.log(`Reporting price ${price} from ${account.account.address}`);
           return await account.writeContract({
             address,

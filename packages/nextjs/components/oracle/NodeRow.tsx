@@ -52,7 +52,9 @@ export const NodeRow = ({ address }: NodeRowProps) => {
 
   const stakedAmountFormatted = stakedAmount !== undefined ? Number(formatEther(stakedAmount)) : "Loading...";
   const lastReportedPriceFormatted =
-    lastReportedPrice !== undefined ? Number(formatUnits(lastReportedPrice, 6)) : "No price reported";
+    lastReportedPrice !== undefined
+      ? Number(parseFloat(formatEther(lastReportedPrice)).toFixed(2))
+      : "No price reported";
   const orcBalanceFormatted = orcBalance !== undefined ? Number(formatEther(orcBalance)) : "Loading...";
 
   // Check if staked amount is below minimum requirement
