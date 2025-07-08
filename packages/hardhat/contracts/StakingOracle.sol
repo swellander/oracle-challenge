@@ -52,6 +52,7 @@ contract StakingOracle {
 
     function reportPrice(uint256 price) public {
         OracleNode storage node = nodes[msg.sender];
+        require(node.nodeAddress != address(0), "Node not registered");
         require(node.stakedAmount >= MINIMUM_STAKE, "Not enough stake");
 
         node.lastReportedPrice = price;
