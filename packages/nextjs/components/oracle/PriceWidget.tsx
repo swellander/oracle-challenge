@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import TooltipInfo from "../TooltipInfo";
-import { formatEther, formatUnits } from "viem";
+import { formatEther } from "viem";
 import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
 
 const getHighlightColor = (oldPrice: bigint | undefined, newPrice: bigint | undefined): string => {

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { ConfigSlider } from "./ConfigSlider";
 import { NodeRowProps } from "./types";
-import { formatEther, formatUnits } from "viem";
+import { formatEther } from "viem";
 import { HighlightedCell } from "~~/components/oracle/HighlightedCell";
 import { Address } from "~~/components/scaffold-eth";
 import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
