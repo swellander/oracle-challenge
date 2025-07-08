@@ -64,12 +64,12 @@ const deployWhitelistOracleContracts: DeployFunction = async function (hre: Hard
 
   // Set initial prices for each SimpleOracle
   console.log("Setting initial prices for each SimpleOracle...");
+  const initialPrice = await fetchPriceFromUniswap();
   for (let i = 0; i < nodeAccounts.length; i++) {
     const account = nodeAccounts[i];
     const simpleOracleDeployment = await hre.deployments.get(`SimpleOracle_${i + 1}`);
     const simpleOracleAbi = simpleOracleDeployment.abi;
     const simpleOracleAddress = simpleOracleDeployment.address as `0x${string}`;
-    const initialPrice = await fetchPriceFromUniswap();
     await account.writeContract({
       address: simpleOracleAddress,
       abi: simpleOracleAbi,

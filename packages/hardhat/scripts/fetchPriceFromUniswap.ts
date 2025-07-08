@@ -3,6 +3,8 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 import { config } from "hardhat";
+import { getConfig, updatePriceCache } from "./utils";
+import { parseEther, formatEther } from "ethers";
 
 const UNISWAP_V2_PAIR_ABI = [
   "function getReserves() external view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast)",
@@ -17,6 +19,15 @@ const mainnet = config.networks.mainnet;
 const MAINNET_RPC = "url" in mainnet ? mainnet.url : "";
 
 export const fetchPriceFromUniswap = async (): Promise<bigint> => {
+  const config = getConfig();
+  const cachedPrice = config.PRICE.CACHEDPRICE;
+  const timestamp = config.PRICE.TIMESTAMP;
+
+  if (Date.now() - timestamp < 1000 * 60 * 60) {
+    return parseEther(cachedPrice.toString());
+  }
+  console.log("Cache expired or missing, fetching fresh price from Uniswap...");
+
   try {
     const provider = new ethers.JsonRpcProvider(MAINNET_RPC);
     const tokenAddress = WETH_ADDRESS; // Always use WETH for mainnet
@@ -43,9 +54,15 @@ export const fetchPriceFromUniswap = async (): Promise<bigint> => {
 
     // Calculate price (DAI per token)
     const price = BigInt(Math.floor((Number(daiReserve) / Number(tokenReserve)) * 1e18));
+
+    // Update cache with fresh price
+    const priceInEther = parseFloat(formatEther(price));
+    updatePriceCache(priceInEther, Date.now());
+    console.log(`Fresh price fetched and cached: ${formatEther(price)} ETH`);
+
     return price;
   } catch (error) {
     console.error("Error fetching ETH price from Uniswap: ", error);
-    return 2600n * 10n ** 18n; // Default price as of 2025-06-02
+    return parseEther(cachedPrice.toString());
   }
 };

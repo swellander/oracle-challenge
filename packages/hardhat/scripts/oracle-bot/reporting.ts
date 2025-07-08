@@ -1,19 +1,11 @@
 import { PublicClient } from "viem";
-import { Config } from "./types";
 import { getRandomPrice } from "./price";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import oracleDeployment from "../../deployments/localhost/StakingOracle.json";
-import fs from "fs";
-import path from "path";
+import { getConfig } from "../utils";
+import { fetchPriceFromUniswap } from "../fetchPriceFromUniswap";
 
 const { abi, address } = oracleDeployment as { abi: any; address: `0x${string}` };
-
-const getConfig = (): Config => {
-  const configPath = path.join(__dirname, "config.json");
-  const configContent = fs.readFileSync(configPath, "utf-8");
-  const config = JSON.parse(configContent) as Config;
-  return config;
-};
 
 const getStakedAmount = async (publicClient: PublicClient, nodeAddress: `0x${string}`) => {
   const nodeInfo = (await publicClient.readContract({
@@ -41,6 +33,7 @@ export const reportPrices = async (hre: HardhatRuntimeEnvironment) => {
     args: [],
   })) as bigint;
 
+  const currentPrice = Number(await fetchPriceFromUniswap());
   try {
     return Promise.all(
       oracleNodeAccounts.map(async account => {
@@ -53,7 +46,7 @@ export const reportPrices = async (hre: HardhatRuntimeEnvironment) => {
         }
 
         if (shouldReport) {
-          const price = BigInt(await getRandomPrice(account.account.address));
+          const price = BigInt(await getRandomPrice(account.account.address, currentPrice));
           console.log(`Reporting price ${price} from ${account.account.address}`);
           return await account.writeContract({
             address,
