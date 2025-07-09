@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import TooltipInfo from "../TooltipInfo";
-import { formatUnits } from "viem";
+import { formatEther } from "viem";
 import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
 
 const getHighlightColor = (oldPrice: bigint | undefined, newPrice: bigint | undefined): string => {
@@ -43,7 +43,7 @@ export const PriceWidget = () => {
         <div className={`rounded-lg transition-colors duration-1000 ${highlight ? highlightColor : ""}`}>
           <div className="text-4xl font-bold">
             {currentPrice !== undefined ? (
-              `$${formatUnits(currentPrice, 6)}`
+              `$${parseFloat(formatEther(currentPrice)).toFixed(2)}`
             ) : (
               <div className="animate-pulse">
                 <div className="h-10 bg-secondary rounded-md w-32"></div>
