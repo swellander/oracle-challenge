@@ -18,7 +18,7 @@ const getHighlightColorForPrice = (currentPrice: bigint | undefined, medianPrice
 
 export const NodeRow = ({ address }: NodeRowProps) => {
   const { data = [] } = useScaffoldReadContract({
-    contractName: "StakeBasedOracle",
+    contractName: "StakingOracle",
     functionName: "nodes",
     args: [address],
   });
@@ -30,13 +30,13 @@ export const NodeRow = ({ address }: NodeRowProps) => {
   });
 
   const { data: minimumStake } = useScaffoldReadContract({
-    contractName: "StakeBasedOracle",
+    contractName: "StakingOracle",
     functionName: "MINIMUM_STAKE",
     args: undefined,
   });
 
   const { data: medianPrice } = useScaffoldReadContract({
-    contractName: "StakeBasedOracle",
+    contractName: "StakingOracle",
     functionName: "getPrice",
   }) as { data: bigint | undefined };
 

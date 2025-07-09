@@ -2,7 +2,7 @@ import { parseUnits, PublicClient } from "viem";
 import { Config } from "./types";
 import { getRandomPrice } from "./price";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import oracleDeployment from "../../deployments/localhost/StakeBasedOracle.json";
+import oracleDeployment from "../../deployments/localhost/StakingOracle.json";
 import fs from "fs";
 import path from "path";
 

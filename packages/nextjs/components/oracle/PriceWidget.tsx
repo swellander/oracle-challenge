@@ -19,7 +19,7 @@ export const PriceWidget = () => {
   const prevPrice = useRef<bigint | undefined>(undefined);
 
   const { data: currentPrice } = useScaffoldReadContract({
-    contractName: "StakeBasedOracle",
+    contractName: "StakingOracle",
     functionName: "getPrice",
   }) as { data: bigint | undefined };
 

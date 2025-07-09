@@ -123,25 +123,23 @@ const generateTsAbis: DeployFunction = async function () {
   );
 
   // --- NEW: Generate externalContracts.ts for ORC token ---
-  // For each chain, get the StakeBasedOracle deployment, call oracleToken, and write ORC data
+  // For each chain, get the StakingOracle deployment, call oracleToken, and write ORC data
   const externalContracts: Record<string, any> = {};
   for (const chainName of getDirectories(DEPLOYMENTS_DIR)) {
     const chainId = fs.readFileSync(`${DEPLOYMENTS_DIR}/${chainName}/.chainId`).toString();
-    const stakeOraclePath = `${DEPLOYMENTS_DIR}/${chainName}/StakeBasedOracle.json`;
-    if (!fs.existsSync(stakeOraclePath)) continue;
-    const stakeOracleDeployment = JSON.parse(fs.readFileSync(stakeOraclePath).toString());
+    const stakingOraclePath = `${DEPLOYMENTS_DIR}/${chainName}/StakingOracle.json`;
+    if (!fs.existsSync(stakingOraclePath)) continue;
+    const stakingOracleDeployment = JSON.parse(fs.readFileSync(stakingOraclePath).toString());
     const provider = new ethers.JsonRpcProvider("http://localhost:8545"); // or use config
-    const stakeOracle = new ethers.Contract(stakeOracleDeployment.address, stakeOracleDeployment.abi, provider);
+    const stakingOracle = new ethers.Contract(stakingOracleDeployment.address, stakingOracleDeployment.abi, provider);
     let orcAddress;
     try {
-      orcAddress = await stakeOracle.oracleToken();
+      orcAddress = await stakingOracle.oracleToken();
     } catch (e) {
       console.error(`Failed to fetch ORC address for chain ${chainId}`, e);
       continue;
     }
-    const orcArtifact = JSON.parse(
-      fs.readFileSync(`${ARTIFACTS_DIR}/contracts/Staking/OracleToken.sol/ORC.json`).toString(),
-    );
+    const orcArtifact = JSON.parse(fs.readFileSync(`${ARTIFACTS_DIR}/contracts/OracleToken.sol/ORC.json`).toString());
     if (!externalContracts[chainId]) externalContracts[chainId] = {};
     externalContracts[chainId]["ORC"] = {
       address: orcAddress,
