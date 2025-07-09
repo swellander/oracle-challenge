@@ -111,6 +111,18 @@ describe("StakingOracle", function () {
 
       await expect(oracle.connect(node2).reportPrice(price)).to.be.revertedWith("Node not registered");
     });
+    it("Should reject price reports from nodes with insufficient stake", async function () {
+      await oracle.connect(node1).reportPrice(1500);
+      await time.increase(STALE_DATA_WINDOW + 1);
+      await oracle.validateNodes();
+
+      const nodeInfo = await oracle.nodes(node1.address);
+      const expectedSlashedAmount = MINIMUM_STAKE - ethers.parseEther("1");
+      expect(nodeInfo.stakedAmount).to.equal(expectedSlashedAmount);
+      expect(nodeInfo.stakedAmount).to.be.lt(MINIMUM_STAKE);
+
+      await expect(oracle.connect(node1).reportPrice(1600)).to.be.revertedWith("Not enough stake");
+    });
   });
 
   describe("Price Aggregation and Node Management", function () {
