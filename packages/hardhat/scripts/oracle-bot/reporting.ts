@@ -2,6 +2,7 @@ import { parseUnits, PublicClient } from "viem";
 import { Config } from "./types";
 import { getRandomPrice } from "./price";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
+
 import fs from "fs";
 import path from "path";
 import { DeployedContract } from "hardhat-deploy/types";

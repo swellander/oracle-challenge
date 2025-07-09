@@ -8,17 +8,17 @@ const deployStakingOracle: DeployFunction = async function (hre: HardhatRuntimeE
   const { deploy } = hre.deployments;
   const { viem } = hre;
 
-  console.log("Deploying Stake-based Oracle contract...");
-  const deployment = await deploy("StakeBasedOracle", {
-    contract: "StakeBasedOracle",
+  console.log("Deploying Staking Oracle contract...");
+  const deployment = await deploy("StakingOracle", {
+    contract: "StakingOracle",
     from: deployer,
     args: [],
     log: true,
     autoMine: true,
   });
 
-  const stakeOracleAddress = deployment.address as `0x${string}`;
-  console.log("StakeBasedOracle deployed at:", stakeOracleAddress);
+  const stakingOracleAddress = deployment.address as `0x${string}`;
+  console.log("StakingOracle deployed at:", stakingOracleAddress);
 
   const accounts = await viem.getWalletClients();
   const nodeAccounts = accounts.slice(1, 11);
@@ -26,7 +26,7 @@ const deployStakingOracle: DeployFunction = async function (hre: HardhatRuntimeE
   const publicClient = await viem.getPublicClient();
 
   const orcTokenAddress = await publicClient.readContract({
-    address: stakeOracleAddress,
+    address: stakingOracleAddress,
     abi: deployment.abi,
     functionName: "oracleToken",
     args: [],
@@ -37,7 +37,7 @@ const deployStakingOracle: DeployFunction = async function (hre: HardhatRuntimeE
   await Promise.all(
     nodeAccounts.map(account => {
       return account.writeContract({
-        address: stakeOracleAddress,
+        address: stakingOracleAddress,
         abi: deployment.abi,
         functionName: "registerNode",
         args: [],
@@ -53,7 +53,7 @@ const deployStakingOracle: DeployFunction = async function (hre: HardhatRuntimeE
   await Promise.all(
     nodeAccounts.map(account => {
       return account.writeContract({
-        address: stakeOracleAddress,
+        address: stakingOracleAddress,
         abi: deployment.abi,
         functionName: "reportPrice",
         args: [parseUnits(initialPrice.toString(), 6)],

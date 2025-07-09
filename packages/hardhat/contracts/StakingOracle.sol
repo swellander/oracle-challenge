@@ -4,7 +4,7 @@ pragma solidity >=0.8.0 <0.9.0;
 import { Arrays } from "@openzeppelin/contracts/utils/Arrays.sol";
 import "./OracleToken.sol";
 
-contract StakeBasedOracle {
+contract StakingOracle {
     ORC public oracleToken;
 
     struct OracleNode {
@@ -52,6 +52,7 @@ contract StakeBasedOracle {
 
     function reportPrice(uint256 price) public {
         OracleNode storage node = nodes[msg.sender];
+        require(node.nodeAddress != address(0), "Node not registered");
         require(node.stakedAmount >= MINIMUM_STAKE, "Not enough stake");
 
         node.lastReportedPrice = price;

@@ -39,7 +39,7 @@ const NoNodesRow = () => {
 
 export const NodesTable = () => {
   const { data: nodeAddresses, isLoading } = useScaffoldReadContract({
-    contractName: "StakeBasedOracle",
+    contractName: "StakingOracle",
     functionName: "getNodeAddresses",
   });
 
