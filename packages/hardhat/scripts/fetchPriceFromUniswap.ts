@@ -2,7 +2,7 @@ import { ethers } from "hardhat";
 import * as dotenv from "dotenv";
 dotenv.config();
 
-import { config } from "hardhat";
+import { config as hardhatConfig } from "hardhat";
 import { getConfig, updatePriceCache } from "./utils";
 import { parseEther, formatEther } from "ethers";
 
@@ -15,7 +15,7 @@ const UNISWAP_V2_PAIR_ABI = [
 const DAI_ADDRESS = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
 const WETH_ADDRESS = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
 const UNISWAP_V2_FACTORY = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";
-const mainnet = config.networks.mainnet;
+const mainnet = hardhatConfig.networks.mainnet;
 const MAINNET_RPC = "url" in mainnet ? mainnet.url : "";
 
 export const fetchPriceFromUniswap = async (): Promise<bigint> => {
@@ -56,8 +56,8 @@ export const fetchPriceFromUniswap = async (): Promise<bigint> => {
     const price = BigInt(Math.floor((Number(daiReserve) / Number(tokenReserve)) * 1e18));
 
     // Update cache with fresh price
-    const priceInEther = parseFloat(formatEther(price));
-    updatePriceCache(priceInEther, Date.now());
+    const pricePerEther = parseFloat(formatEther(price));
+    updatePriceCache(pricePerEther, Date.now());
     console.log(`Fresh price fetched and cached: ${formatEther(price)} ETH`);
 
     return price;
