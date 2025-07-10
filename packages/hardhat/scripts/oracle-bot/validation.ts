@@ -3,12 +3,12 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 export const validateNodes = async (hre: HardhatRuntimeEnvironment) => {
   const { deployments } = hre;
   const [account] = await hre.viem.getWalletClients();
-  const StakeBasedOracle = await deployments.get("StakeBasedOracle");
+  const oracleContract = await deployments.get("StakeBasedOracle");
 
   try {
     return await account.writeContract({
-      address: StakeBasedOracle.address as `0x${string}`,
-      abi: StakeBasedOracle.abi,
+      address: oracleContract.address as `0x${string}`,
+      abi: oracleContract.abi,
       functionName: "validateNodes",
       args: [],
     });
