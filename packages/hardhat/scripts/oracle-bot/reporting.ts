@@ -1,8 +1,6 @@
-import { parseUnits, PublicClient } from "viem";
-import { Config } from "./types";
+import { PublicClient } from "viem";
 import { getRandomPrice } from "./price";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-
 import fs from "fs";
 import path from "path";
 import { DeployedContract } from "hardhat-deploy/types";
@@ -19,6 +17,7 @@ const getStakedAmount = async (
   nodeAddress: `0x${string}`,
   StakeBasedOracle: DeployedContract,
 ) => {
+const getStakedAmount = async (publicClient: PublicClient, nodeAddress: `0x${string}`) => {
   const nodeInfo = (await publicClient.readContract({
     address: StakeBasedOracle.address as `0x${string}`,
     abi: StakeBasedOracle.abi,
@@ -47,6 +46,7 @@ export const reportPrices = async (hre: HardhatRuntimeEnvironment) => {
     args: [],
   })) as unknown as bigint;
 
+  const currentPrice = Number(await fetchPriceFromUniswap());
   try {
     return Promise.all(
       oracleNodeAccounts.map(async account => {
@@ -59,7 +59,7 @@ export const reportPrices = async (hre: HardhatRuntimeEnvironment) => {
         }
 
         if (shouldReport) {
-          const price = parseUnits(getRandomPrice(account.account.address).toString(), 6);
+          const price = BigInt(await getRandomPrice(account.account.address, currentPrice));
           console.log(`Reporting price ${price} from ${account.account.address}`);
           return await account.writeContract({
             address: StakeBasedOracle.address as `0x${string}`,

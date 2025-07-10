@@ -3,14 +3,10 @@ interface NodeConfig {
   PRICE_VARIANCE: number; // Higher number means wider price range
 }
 
-interface PriceRange {
-  MIN: number;
-  MAX: number;
-}
-
 export interface Config {
-  PRICE_RANGE: {
-    BASE: PriceRange; // Base price range that will be modified by variance
+  PRICE: {
+    CACHEDPRICE: number;
+    TIMESTAMP: number;
   };
   INTERVALS: {
     PRICE_REPORT: number;

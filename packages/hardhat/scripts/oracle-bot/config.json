@@ -1,9 +1,7 @@
 {
-  "PRICE_RANGE": {
-    "BASE": {
-      "MIN": 2000,
-      "MAX": 2000
-    }
+  "PRICE": {
+    "CACHEDPRICE": 2610.007354231406,
+    "TIMESTAMP": 1752006581494
   },
   "INTERVALS": {
     "PRICE_REPORT": 1750,
