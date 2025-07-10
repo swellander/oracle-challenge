@@ -36,7 +36,7 @@ process.on("unhandledRejection", error => {
   console.error("Unhandled promise rejection:", error);
 });
 
-run().catch(async error => {
+run().catch(error => {
   console.error("Fatal error in oracle bot system:", error);
   process.exit(1);
 });
