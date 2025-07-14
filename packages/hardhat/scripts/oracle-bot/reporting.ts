@@ -23,7 +23,7 @@ const getStakedAmount = async (
 
 export const reportPrices = async (hre: HardhatRuntimeEnvironment) => {
   const { deployments } = hre;
-  const oracleContract = await deployments.get("StakeBasedOracle");
+  const oracleContract = await deployments.get("StakingOracle");
   const config = getConfig();
   const accounts = await hre.viem.getWalletClients();
   const oracleNodeAccounts = accounts.slice(1, 11);
