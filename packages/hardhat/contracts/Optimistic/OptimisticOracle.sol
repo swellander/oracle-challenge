@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity >=0.8.0 <0.9.0;
 
 import { Decider } from "./Decider.sol";
 
 contract OptimisticOracle {
-    enum State { Invalid, Asserted, Proposed, Disputed, Settled }
+    enum State { Invalid, Asserted, Proposed, Disputed, Settled, Expired }
 
     error AssertionExists();
     error AssertionNotFound();
     error AssertionProposed();
-    error IncorrectBond();
+    error NotEnoughValue();
     error ProposalDisputed();
     error DeadlineNotMet();
     error NotProposedAssertion();
@@ -32,22 +32,25 @@ contract OptimisticOracle {
         uint256 deadline;
         bool claimed;
         address winner;
+        string description;
     }
 
-    uint256 public constant DISPUTE_WINDOW = 1 hours;
-    uint256 public constant FIXED_BOND = 1 ether;
+    uint256 public constant DISPUTE_WINDOW = 3 minutes;
+    uint256 public constant FIXED_BOND = 0.1 ether;
     uint256 public constant DECIDER_FEE = 0.2 ether;
+    uint256 public constant MINIMUM_REWARD = DECIDER_FEE + 0.01 ether;
     Decider public decider;
     address public owner;
-    mapping(bytes32 => EventAssertion) public assertions;
+    uint256 public nextAssertionId = 1;
+    mapping(uint256 => EventAssertion) public assertions;
 
-    event EventAsserted(bytes32 assertionId, address indexed asserter, string description, uint256 reward);
-    event OutcomeProposed(bytes32 assertionId, address indexed proposer, bool outcome);
-    event OutcomeDisputed(bytes32 assertionId, address indexed disputer);
-    event AssertionSettled(bytes32 assertionId, bool outcome, address winner);
-    event DeciderUpdated(address indexed oldDecider, address indexed newDecider);
-    event RewardClaimed(bytes32 assertionId, address indexed winner, uint256 amount);
-    event RefundClaimed(bytes32 assertionId, address indexed asserter, uint256 amount);
+    event EventAsserted(uint256 assertionId, address asserter, string description, uint256 reward);
+    event OutcomeProposed(uint256 assertionId, address proposer, bool outcome);
+    event OutcomeDisputed(uint256 assertionId, address disputer);
+    event AssertionSettled(uint256 assertionId, bool outcome, address winner);
+    event DeciderUpdated(address oldDecider, address newDecider);
+    event RewardClaimed(uint256 assertionId, address winner, uint256 amount);
+    event RefundClaimed(uint256 assertionId, address asserter, uint256 amount);
 
     modifier onlyDecider() {
         if (msg.sender != address(decider)) revert OnlyDecider();
@@ -77,9 +80,10 @@ contract OptimisticOracle {
      * @notice Assert that an event will have a true/false outcome.
      * @dev The `description` is used to identify the event (e.g. "Did X happen by time Y?")
      */
-    function assertEvent(string memory description) external payable returns (bytes32) {
-        bytes32 assertionId = keccak256(abi.encodePacked(msg.sender, description));
-        if (assertions[assertionId].asserter != address(0)) revert AssertionExists();
+    function assertEvent(string memory description) external payable returns (uint256) {
+        uint256 assertionId = nextAssertionId;
+        nextAssertionId++;
+        if (msg.value < MINIMUM_REWARD) revert NotEnoughValue();
 
         assertions[assertionId] = EventAssertion({
             asserter: msg.sender,
@@ -91,7 +95,8 @@ contract OptimisticOracle {
             bond: FIXED_BOND,
             deadline: block.timestamp + DISPUTE_WINDOW,
             claimed: false,
-            winner: address(0)
+            winner: address(0),
+            description: description
         });
 
         emit EventAsserted(assertionId, msg.sender, description, msg.value);
@@ -101,13 +106,12 @@ contract OptimisticOracle {
     /**
      * @notice Propose the outcome (true or false) for an asserted event.
      */
-    function proposeOutcome(address asserter, string memory description, bool outcome) external payable {
-        bytes32 assertionId = keccak256(abi.encodePacked(asserter, description));
+    function proposeOutcome(uint256 assertionId, bool outcome) external payable {
         EventAssertion storage assertion = assertions[assertionId];
 
         if (assertion.asserter == address(0)) revert AssertionNotFound();
         if (assertion.proposer != address(0)) revert AssertionProposed();
-        if (msg.value != assertion.bond) revert IncorrectBond();
+        if (msg.value != assertion.bond) revert NotEnoughValue();
 
         assertion.proposer = msg.sender;
         assertion.proposedOutcome = outcome;
@@ -120,21 +124,20 @@ contract OptimisticOracle {
     /**
      * @notice Dispute the proposed outcome by bonding ETH.
      */
-    function disputeOutcome(address asserter, string memory description) external payable {
-        bytes32 assertionId = keccak256(abi.encodePacked(asserter, description));
+    function disputeOutcome(uint256 assertionId) external payable {
         EventAssertion storage assertion = assertions[assertionId];
 
         if (assertion.proposer == address(0)) revert NotProposedAssertion();
         if (assertion.disputer != address(0)) revert ProposalDisputed();
         if (block.timestamp > assertion.deadline) revert DeadlineNotMet();
-        if (msg.value != assertion.bond) revert IncorrectBond();
+        if (msg.value != assertion.bond) revert NotEnoughValue();
 
         assertion.disputer = msg.sender;
 
         emit OutcomeDisputed(assertionId, msg.sender);
     }
 
-    function _sendReward(bytes32 assertionId, uint256 totalReward, address winner) internal {
+    function _sendReward(uint256 assertionId, uint256 totalReward, address winner) internal {
         // Send decider fee
         (bool deciderSuccess, ) = payable(address(decider)).call{value: DECIDER_FEE}("");
         if (!deciderSuccess) revert TransferFailed();
@@ -145,12 +148,12 @@ contract OptimisticOracle {
 
         emit RewardClaimed(assertionId, winner, totalReward);
     }
+
     /**
      * @notice Claim reward for uncontested assertions after dispute window expires.
      * @dev Only the proposer can claim if no dispute occurred.
      */
-    function claimUndisputedReward(address asserter, string memory description) external {
-        bytes32 assertionId = keccak256(abi.encodePacked(asserter, description));
+    function claimUndisputedReward(uint256 assertionId) external {
         EventAssertion storage assertion = assertions[assertionId];
 
         if (assertion.proposer == address(0)) revert NotProposedAssertion();
@@ -171,8 +174,7 @@ contract OptimisticOracle {
      * @notice Claim reward for disputed assertions after decider settlement.
      * @dev Only the winner can claim after the decider has settled the dispute.
      */
-    function claimDisputedReward(address asserter, string memory description) external {
-        bytes32 assertionId = keccak256(abi.encodePacked(asserter, description));
+    function claimDisputedReward(uint256 assertionId) external {
         EventAssertion storage assertion = assertions[assertionId];
 
         if (assertion.proposer == address(0)) revert NotProposedAssertion();
@@ -190,8 +192,7 @@ contract OptimisticOracle {
      * @notice Claim refund for any assertion that does not get a proposal before deadline
      * @dev Only the asserter can claim refund
      */
-    function claimRefund(address asserter, string memory description) external {
-        bytes32 assertionId = keccak256(abi.encodePacked(asserter, description));
+    function claimRefund(uint256 assertionId) external {
         EventAssertion storage assertion = assertions[assertionId];
 
         if (assertion.proposer != address(0)) revert AssertionProposed();
@@ -209,8 +210,7 @@ contract OptimisticOracle {
      * @notice Decider resolves disputed assertions and sets the winner.
      * @dev Only the decider can call this. The winner must then call claimDisputedReward.
      */
-    function settleAssertion(address asserter, string memory description, bool resolvedOutcome) external onlyDecider {
-        bytes32 assertionId = keccak256(abi.encodePacked(asserter, description));
+    function settleAssertion(uint256 assertionId, bool resolvedOutcome) external onlyDecider {
         EventAssertion storage assertion = assertions[assertionId];
 
         if (assertion.proposer == address(0)) revert NotProposedAssertion();
@@ -230,14 +230,10 @@ contract OptimisticOracle {
     /**
      * @notice Returns the current state of an assertion.
      */
-    function getState(address asserter, string memory description) external view returns (State) {
-        bytes32 id = keccak256(abi.encodePacked(asserter, description));
-        EventAssertion storage a = assertions[id];
+    function getState(uint256 assertionId) external view returns (State) {
+        EventAssertion storage a = assertions[assertionId];
 
         if (a.asserter == address(0)) return State.Invalid;
-        
-        // If no proposal yet, it's in Asserted state
-        if (a.proposer == address(0)) return State.Asserted;
         
         // If there's a winner, it's settled
         if (a.winner != address(0)) return State.Settled;
@@ -245,8 +241,14 @@ contract OptimisticOracle {
         // If there's a dispute, it's disputed
         if (a.disputer != address(0)) return State.Disputed;
         
+        // If no proposal yet, check if deadline has passed
+        if (a.proposer == address(0)) {
+            if (block.timestamp > a.deadline) return State.Expired;
+            return State.Asserted;
+        }
+        
         // If no dispute and deadline passed, it's settled (can be claimed)
-        if (a.deadline > 0 && block.timestamp > a.deadline) return State.Settled;
+        if (block.timestamp > a.deadline) return State.Settled;
         
         // Otherwise it's proposed
         return State.Proposed;
@@ -255,9 +257,8 @@ contract OptimisticOracle {
     /**
      * @notice Get the resolution of an assertion.
      */
-    function getResolution(address asserter, string memory description) external view returns (bool) {
-        bytes32 id = keccak256(abi.encodePacked(asserter, description));
-        EventAssertion storage a = assertions[id];
+    function getResolution(uint256 assertionId) external view returns (bool) {
+        EventAssertion storage a = assertions[assertionId];
         if (a.asserter == address(0)) revert AssertionNotFound();
 
         if (a.disputer == address(0)) {
@@ -267,5 +268,12 @@ contract OptimisticOracle {
             if (a.winner == address(0)) revert AwaitingDecider();
             return a.resolvedOutcome;
         }
+    }
+
+    /**
+     * @notice Get the assertion details.
+     */
+    function getAssertion(uint256 assertionId) external view returns (EventAssertion memory) {
+        return assertions[assertionId];
     }
 }

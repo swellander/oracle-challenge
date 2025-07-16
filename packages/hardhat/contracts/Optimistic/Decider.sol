@@ -7,7 +7,7 @@ contract Decider {
     address public owner;
     OptimisticOracle public oracle;
     
-    event DisputeSettled(address indexed asserter, string description, bool resolvedValue, address indexed resolvedBy);
+    event DisputeSettled(uint256 indexed assertionId, bool resolvedValue);
     
     constructor(address _oracle) {
         owner = msg.sender;
@@ -16,18 +16,16 @@ contract Decider {
     
     /**
      * @notice Settle a dispute by determining the true/false outcome
-     * @param asserter The address that made the original assertion
-     * @param description The description of the event being disputed
+     * @param assertionId The ID of the assertion to settle
      * @param resolvedValue The true/false outcome determined by the decider
      */
-    function settleDispute(address asserter, string memory description, bool resolvedValue) external {
-        require(asserter != address(0), "Invalid asserter");
-        require(bytes(description).length > 0, "Invalid description");
+    function settleDispute(uint256 assertionId, bool resolvedValue) external {
+        require(assertionId >= 1, "Invalid assertion ID");
         
         // Call the oracle's settleAssertion function
-        oracle.settleAssertion(asserter, description, resolvedValue);
+        oracle.settleAssertion(assertionId, resolvedValue);
         
-        emit DisputeSettled(asserter, description, resolvedValue, msg.sender);
+        emit DisputeSettled(assertionId, resolvedValue);
     }
     
     function setOracle(address newOracle) external {
