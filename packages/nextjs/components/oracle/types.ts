@@ -1,5 +1,6 @@
 export interface NodeRowProps {
   address: string;
+  index?: number;
 }
 
 export interface NodeInfo {

@@ -1,0 +1,38 @@
+import { formatEther } from "viem";
+import { HighlightedCell } from "~~/components/oracle/HighlightedCell";
+import { NodeRowProps } from "~~/components/oracle/types";
+import { Address } from "~~/components/scaffold-eth";
+import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
+import { ContractName } from "~~/utils/scaffold-eth/contract";
+
+export const WhitelistRow = ({ address, index }: NodeRowProps) => {
+  const contractNameSuffix = index !== undefined && index > 0 ? `_${index + 1}` : "";
+  const contractName = `SimpleOracle${contractNameSuffix}` as ContractName;
+
+  const { data } = useScaffoldReadContract({
+    contractName: contractName,
+    functionName: "getPrice",
+  });
+
+  const lastReportedPriceFormatted =
+    data !== undefined ? Number(parseFloat(formatEther(data[0])).toFixed(2)) : "No price reported";
+  const lastReportedTime =
+    data !== undefined ? new Date(Number(data[1]) * 1000).toLocaleTimeString() : "No time reported";
+
+  const currentTime = new Date().getTime() / 1000;
+  const isActive = data !== undefined && data[1] !== undefined ? data[1] > currentTime - 10 : true;
+
+  return (
+    <tr className={isActive ? "" : "bg-gray-300 opacity-50"}>
+      <td>
+        <Address address={address} size="sm" format="short" onlyEnsOrAddress={true} />
+      </td>
+      <HighlightedCell value={lastReportedPriceFormatted} highlightColor="">
+        {lastReportedPriceFormatted}
+      </HighlightedCell>
+      <HighlightedCell value={lastReportedTime} highlightColor="">
+        {lastReportedTime}
+      </HighlightedCell>
+    </tr>
+  );
+};
