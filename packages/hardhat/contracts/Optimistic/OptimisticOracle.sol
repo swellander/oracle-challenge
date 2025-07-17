@@ -6,12 +6,11 @@ import { Decider } from "./Decider.sol";
 contract OptimisticOracle {
     enum State { Invalid, Asserted, Proposed, Disputed, Settled, Expired }
 
-    error AssertionExists();
     error AssertionNotFound();
     error AssertionProposed();
     error NotEnoughValue();
+    error NotTime();
     error ProposalDisputed();
-    error DeadlineNotMet();
     error NotProposedAssertion();
     error AlreadyClaimed();
     error AlreadySettled();
@@ -29,13 +28,14 @@ contract OptimisticOracle {
         bool resolvedOutcome;
         uint256 reward;
         uint256 bond;
-        uint256 deadline;
+        uint256 startTime;
+        uint256 endTime;
         bool claimed;
         address winner;
         string description;
     }
 
-    uint256 public constant DISPUTE_WINDOW = 3 minutes;
+    uint256 public constant MINIMUM_DISPUTE_WINDOW = 3 minutes;
     uint256 public constant FIXED_BOND = 0.1 ether;
     uint256 public constant DECIDER_FEE = 0.2 ether;
     uint256 public constant MINIMUM_REWARD = DECIDER_FEE + 0.01 ether;
@@ -79,11 +79,24 @@ contract OptimisticOracle {
     /**
      * @notice Assert that an event will have a true/false outcome.
      * @dev The `description` is used to identify the event (e.g. "Did X happen by time Y?")
+     * @param description The description of the event
+     * @param startTime When proposals can begin (0 for current time)
+     * @param endTime When the assertion expires (0 for startTime + minimum window)
      */
-    function assertEvent(string memory description) external payable returns (uint256) {
+    function assertEvent(string memory description, uint256 startTime, uint256 endTime) external payable returns (uint256) {
         uint256 assertionId = nextAssertionId;
         nextAssertionId++;
         if (msg.value < MINIMUM_REWARD) revert NotEnoughValue();
+
+        // Set default times if not provided
+        if (startTime == 0) {
+            startTime = block.timestamp;
+        }
+        if (endTime == 0) {
+            endTime = startTime + MINIMUM_DISPUTE_WINDOW;
+        }
+
+        if (endTime < block.timestamp + MINIMUM_DISPUTE_WINDOW) revert NotTime();
 
         assertions[assertionId] = EventAssertion({
             asserter: msg.sender,
@@ -93,7 +106,8 @@ contract OptimisticOracle {
             resolvedOutcome: false,
             reward: msg.value,
             bond: FIXED_BOND,
-            deadline: block.timestamp + DISPUTE_WINDOW,
+            startTime: startTime,
+            endTime: endTime,
             claimed: false,
             winner: address(0),
             description: description
@@ -111,12 +125,16 @@ contract OptimisticOracle {
 
         if (assertion.asserter == address(0)) revert AssertionNotFound();
         if (assertion.proposer != address(0)) revert AssertionProposed();
+        if (block.timestamp < assertion.startTime) revert NotTime();
+        if (block.timestamp > assertion.endTime) revert NotTime();
         if (msg.value != assertion.bond) revert NotEnoughValue();
 
         assertion.proposer = msg.sender;
         assertion.proposedOutcome = outcome;
-        // Reset the dispute deadline 
-        assertion.deadline = block.timestamp + DISPUTE_WINDOW;
+        // If someone proposes with less than the minimum dispute window remaining, extend the dispute window
+        if (assertion.endTime < block.timestamp + MINIMUM_DISPUTE_WINDOW) {
+            assertion.endTime = block.timestamp + MINIMUM_DISPUTE_WINDOW;
+        }
 
         emit OutcomeProposed(assertionId, msg.sender, outcome);
     }
@@ -129,7 +147,7 @@ contract OptimisticOracle {
 
         if (assertion.proposer == address(0)) revert NotProposedAssertion();
         if (assertion.disputer != address(0)) revert ProposalDisputed();
-        if (block.timestamp > assertion.deadline) revert DeadlineNotMet();
+        if (block.timestamp > assertion.endTime) revert NotTime();
         if (msg.value != assertion.bond) revert NotEnoughValue();
 
         assertion.disputer = msg.sender;
@@ -158,7 +176,7 @@ contract OptimisticOracle {
 
         if (assertion.proposer == address(0)) revert NotProposedAssertion();
         if (assertion.disputer != address(0)) revert ProposalDisputed();
-        if (block.timestamp <= assertion.deadline) revert DeadlineNotMet();
+        if (block.timestamp <= assertion.endTime) revert NotTime();
         if (assertion.claimed) revert AlreadyClaimed();
 
         assertion.claimed = true;
@@ -196,7 +214,7 @@ contract OptimisticOracle {
         EventAssertion storage assertion = assertions[assertionId];
 
         if (assertion.proposer != address(0)) revert AssertionProposed();
-        if (block.timestamp <= assertion.deadline) revert DeadlineNotMet();
+        if (block.timestamp <= assertion.endTime) revert NotTime();
         if (assertion.claimed) revert AlreadyClaimed();
 
         assertion.claimed = true;
@@ -243,12 +261,12 @@ contract OptimisticOracle {
         
         // If no proposal yet, check if deadline has passed
         if (a.proposer == address(0)) {
-            if (block.timestamp > a.deadline) return State.Expired;
+            if (block.timestamp > a.endTime) return State.Expired;
             return State.Asserted;
         }
         
         // If no dispute and deadline passed, it's settled (can be claimed)
-        if (block.timestamp > a.deadline) return State.Settled;
+        if (block.timestamp > a.endTime) return State.Settled;
         
         // Otherwise it's proposed
         return State.Proposed;
@@ -262,7 +280,7 @@ contract OptimisticOracle {
         if (a.asserter == address(0)) revert AssertionNotFound();
 
         if (a.disputer == address(0)) {
-            if (block.timestamp <= a.deadline) revert DeadlineNotMet();
+            if (block.timestamp <= a.endTime) revert NotTime();
             return a.proposedOutcome;
         } else {
             if (a.winner == address(0)) revert AwaitingDecider();

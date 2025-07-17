@@ -49,11 +49,11 @@ describe("OptimisticOracle", function () {
     });
 
     it("Should have correct constants", async function () {
-      const disputeWindow = await optimisticOracle.DISPUTE_WINDOW();
+      const minimumDisputeWindow = await optimisticOracle.MINIMUM_DISPUTE_WINDOW();
       const fixedBond = await optimisticOracle.FIXED_BOND();
       const deciderFee = await optimisticOracle.DECIDER_FEE();
 
-      expect(disputeWindow).to.equal(180n); // 3 minutes
+      expect(minimumDisputeWindow).to.equal(180n); // 3 minutes
       expect(fixedBond).to.equal(ethers.parseEther("0.1"));
       expect(deciderFee).to.equal(ethers.parseEther("0.2"));
     });
@@ -67,9 +67,8 @@ describe("OptimisticOracle", function () {
       const description = "Will Bitcoin reach $1m by end of 2026?";
       const reward = ethers.parseEther("1");
 
-      const tx = await optimisticOracle.connect(asserter).assertEvent(description, { value: reward });
+      const tx = await optimisticOracle.connect(asserter).assertEvent(description, 0, 0, { value: reward });
       const receipt = await tx.wait();
-
       // Get the assertionId from the event
       const event = receipt!.logs.find(
         log => optimisticOracle.interface.parseLog(log as any)?.name === "EventAsserted",
@@ -86,7 +85,7 @@ describe("OptimisticOracle", function () {
       const description = "Will Bitcoin reach $1m by end of 2026?";
       const reward = ethers.parseEther("1");
 
-      const tx = await optimisticOracle.connect(asserter).assertEvent(description, { value: reward });
+      const tx = await optimisticOracle.connect(asserter).assertEvent(description, 0, 0, { value: reward });
       const receipt = await tx.wait();
 
       // Get the assertionId from the event
@@ -109,7 +108,7 @@ describe("OptimisticOracle", function () {
       const insufficientReward = ethers.parseEther("0.1"); // Less than minimum
 
       await expect(
-        optimisticOracle.connect(asserter).assertEvent(description, { value: insufficientReward }),
+        optimisticOracle.connect(asserter).assertEvent(description, 0, 0, { value: insufficientReward }),
       ).to.be.revertedWithCustomError(optimisticOracle, "NotEnoughValue");
     });
   });
@@ -122,7 +121,7 @@ describe("OptimisticOracle", function () {
     beforeEach(async function () {
       description = "Will Bitcoin reach $1m by end of 2026?";
       reward = ethers.parseEther("1");
-      const tx = await optimisticOracle.connect(asserter).assertEvent(description, { value: reward });
+      const tx = await optimisticOracle.connect(asserter).assertEvent(description, 0, 0, { value: reward });
       const receipt = await tx.wait();
       // Get the assertionId from the event
       const event = receipt!.logs.find(
@@ -174,7 +173,7 @@ describe("OptimisticOracle", function () {
     beforeEach(async function () {
       description = "Will Bitcoin reach $1m by end of 2026?";
       reward = ethers.parseEther("1");
-      const tx = await optimisticOracle.connect(asserter).assertEvent(description, { value: reward });
+      const tx = await optimisticOracle.connect(asserter).assertEvent(description, 0, 0, { value: reward });
       const receipt = await tx.wait();
       const event = receipt!.logs.find(
         log => optimisticOracle.interface.parseLog(log as any)?.name === "EventAsserted",
@@ -214,7 +213,7 @@ describe("OptimisticOracle", function () {
       const bond = await optimisticOracle.FIXED_BOND();
       await expect(
         optimisticOracle.connect(disputer).disputeOutcome(assertionId, { value: bond }),
-      ).to.be.revertedWithCustomError(optimisticOracle, "DeadlineNotMet");
+      ).to.be.revertedWithCustomError(optimisticOracle, "NotTime");
     });
 
     it("Should reject duplicate disputes", async function () {
@@ -235,7 +234,7 @@ describe("OptimisticOracle", function () {
     beforeEach(async function () {
       description = "Will Bitcoin reach $1m by end of 2026?";
       reward = ethers.parseEther("1");
-      const tx = await optimisticOracle.connect(asserter).assertEvent(description, { value: reward });
+      const tx = await optimisticOracle.connect(asserter).assertEvent(description, 0, 0, { value: reward });
       const receipt = await tx.wait();
       const event = receipt!.logs.find(
         log => optimisticOracle.interface.parseLog(log as any)?.name === "EventAsserted",
@@ -266,7 +265,7 @@ describe("OptimisticOracle", function () {
     it("Should reject claiming before deadline", async function () {
       await expect(optimisticOracle.connect(proposer).claimUndisputedReward(assertionId)).to.be.revertedWithCustomError(
         optimisticOracle,
-        "DeadlineNotMet",
+        "NotTime",
       );
     });
 
@@ -301,7 +300,7 @@ describe("OptimisticOracle", function () {
     beforeEach(async function () {
       description = "Will Bitcoin reach $1m by end of 2026?";
       reward = ethers.parseEther("1");
-      const tx = await optimisticOracle.connect(asserter).assertEvent(description, { value: reward });
+      const tx = await optimisticOracle.connect(asserter).assertEvent(description, 0, 0, { value: reward });
       const receipt = await tx.wait();
       const event = receipt!.logs.find(
         log => optimisticOracle.interface.parseLog(log as any)?.name === "EventAsserted",
@@ -372,7 +371,7 @@ describe("OptimisticOracle", function () {
     beforeEach(async function () {
       description = "Will Bitcoin reach $1m by end of 2026?";
       reward = ethers.parseEther("1");
-      const tx = await optimisticOracle.connect(asserter).assertEvent(description, { value: reward });
+      const tx = await optimisticOracle.connect(asserter).assertEvent(description, 0, 0, { value: reward });
       const receipt = await tx.wait();
       const event = receipt!.logs.find(
         log => optimisticOracle.interface.parseLog(log as any)?.name === "EventAsserted",
@@ -427,7 +426,7 @@ describe("OptimisticOracle", function () {
     beforeEach(async function () {
       description = "Will Bitcoin reach $1m by end of 2026?";
       reward = ethers.parseEther("1");
-      const tx = await optimisticOracle.connect(asserter).assertEvent(description, { value: reward });
+      const tx = await optimisticOracle.connect(asserter).assertEvent(description, 0, 0, { value: reward });
       const receipt = await tx.wait();
       const event = receipt!.logs.find(
         log => optimisticOracle.interface.parseLog(log as any)?.name === "EventAsserted",
@@ -462,7 +461,7 @@ describe("OptimisticOracle", function () {
     it("Should reject settling undisputed assertions", async function () {
       // Create a new undisputed assertion
       const newDescription = "Will Ethereum reach $10k by end of 2024?";
-      const newTx = await optimisticOracle.connect(asserter).assertEvent(newDescription, { value: reward });
+      const newTx = await optimisticOracle.connect(asserter).assertEvent(newDescription, 0, 0, { value: reward });
       const newReceipt = await newTx.wait();
       const newEvent = newReceipt!.logs.find(
         log => optimisticOracle.interface.parseLog(log as any)?.name === "EventAsserted",
@@ -490,7 +489,7 @@ describe("OptimisticOracle", function () {
       expect(state).to.equal(State.Invalid); // Invalid
 
       // Asserted state
-      const tx = await optimisticOracle.connect(asserter).assertEvent(description, { value: reward });
+      const tx = await optimisticOracle.connect(asserter).assertEvent(description, 0, 0, { value: reward });
       const receipt = await tx.wait();
       const event = receipt!.logs.find(
         log => optimisticOracle.interface.parseLog(log as any)?.name === "EventAsserted",
@@ -522,7 +521,7 @@ describe("OptimisticOracle", function () {
       const description = "Will Ethereum reach $10k by end of 2024?";
       const reward = ethers.parseEther("1");
 
-      const tx = await optimisticOracle.connect(asserter).assertEvent(description, { value: reward });
+      const tx = await optimisticOracle.connect(asserter).assertEvent(description, 0, 0, { value: reward });
       const receipt = await tx.wait();
       const event = receipt!.logs.find(
         log => optimisticOracle.interface.parseLog(log as any)?.name === "EventAsserted",
@@ -545,7 +544,7 @@ describe("OptimisticOracle", function () {
       const description = "Will Ethereum reach $10k by end of 2024?";
       const reward = ethers.parseEther("1");
 
-      const tx = await optimisticOracle.connect(asserter).assertEvent(description, { value: reward });
+      const tx = await optimisticOracle.connect(asserter).assertEvent(description, 0, 0, { value: reward });
       const receipt = await tx.wait();
       const event = receipt!.logs.find(
         log => optimisticOracle.interface.parseLog(log as any)?.name === "EventAsserted",
@@ -559,6 +558,81 @@ describe("OptimisticOracle", function () {
 
       const state = await optimisticOracle.getState(assertionId);
       expect(state).to.equal(State.Expired); // Expired
+    });
+  });
+
+  describe("Start and End Time Logic", function () {
+    it("Should not allow proposal before startTime", async function () {
+      const reward = ethers.parseEther("1");
+      const now = (await ethers.provider.getBlock("latest"))!.timestamp;
+      const start = now + 1000;
+      const end = start + 1000;
+      const tx = await optimisticOracle.connect(asserter).assertEvent("future event", start, end, { value: reward });
+      const receipt = await tx.wait();
+      const event = receipt!.logs.find(
+        log => optimisticOracle.interface.parseLog(log as any)?.name === "EventAsserted",
+      );
+      const parsedEvent = optimisticOracle.interface.parseLog(event as any);
+      if (!parsedEvent) throw new Error("Event not found");
+      const assertionId = parsedEvent.args[0];
+
+      const bond = await optimisticOracle.FIXED_BOND();
+      await expect(
+        optimisticOracle.connect(proposer).proposeOutcome(assertionId, true, { value: bond }),
+      ).to.be.revertedWithCustomError(optimisticOracle, "NotTime");
+    });
+
+    it("Should not allow proposal after endTime", async function () {
+      const reward = ethers.parseEther("1");
+      const now = (await ethers.provider.getBlock("latest"))!.timestamp;
+      const start = now;
+      const end = now + 200; // 200 seconds, which is more than MINIMUM_DISPUTE_WINDOW (180 seconds)
+      const tx = await optimisticOracle.connect(asserter).assertEvent("short event", start, end, { value: reward });
+      const receipt = await tx.wait();
+      const event = receipt!.logs.find(
+        log => optimisticOracle.interface.parseLog(log as any)?.name === "EventAsserted",
+      );
+      const parsedEvent = optimisticOracle.interface.parseLog(event as any);
+      if (!parsedEvent) throw new Error("Event not found");
+      const assertionId = parsedEvent.args[0];
+
+      // Wait until after endTime
+      await ethers.provider.send("evm_increaseTime", [201]);
+      await ethers.provider.send("evm_mine");
+
+      const bond = await optimisticOracle.FIXED_BOND();
+      await expect(
+        optimisticOracle.connect(proposer).proposeOutcome(assertionId, true, { value: bond }),
+      ).to.be.revertedWithCustomError(optimisticOracle, "NotTime");
+    });
+
+    it("Should allow proposal only within [startTime, endTime]", async function () {
+      const reward = ethers.parseEther("1");
+      const now = (await ethers.provider.getBlock("latest"))!.timestamp;
+      const start = now + 10; // Start time in the future
+      const end = start + 200; // Ensure endTime is far enough in the future
+      const tx = await optimisticOracle.connect(asserter).assertEvent("window event", start, end, { value: reward });
+      const receipt = await tx.wait();
+      const event = receipt!.logs.find(
+        log => optimisticOracle.interface.parseLog(log as any)?.name === "EventAsserted",
+      );
+      const parsedEvent = optimisticOracle.interface.parseLog(event as any);
+      if (!parsedEvent) throw new Error("Event not found");
+      const assertionId = parsedEvent.args[0];
+
+      const bond = await optimisticOracle.FIXED_BOND();
+
+      // Before startTime - should fail
+      await expect(
+        optimisticOracle.connect(proposer).proposeOutcome(assertionId, true, { value: bond }),
+      ).to.be.revertedWithCustomError(optimisticOracle, "NotTime");
+
+      // Move to startTime
+      await ethers.provider.send("evm_increaseTime", [10]);
+      await ethers.provider.send("evm_mine");
+
+      // Now it should work
+      await optimisticOracle.connect(proposer).proposeOutcome(assertionId, true, { value: bond });
     });
   });
 });
