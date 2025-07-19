@@ -14,11 +14,13 @@ export const HighlightedCell = ({
   handleClick?: () => void;
 }) => {
   const [isHighlighted, setIsHighlighted] = useState(false);
-  const prevValue = useRef<number | undefined>(undefined);
+  const prevValue = useRef<string | number | undefined>(undefined);
 
   useEffect(() => {
-    if (typeof value !== "number") return;
-    const hasPrev = typeof prevValue.current === "number";
+    if (value === undefined) return;
+    if (value === "No price reported") return;
+    if (value === "Loading...") return;
+    const hasPrev = typeof prevValue.current === "number" || typeof prevValue.current === "string";
 
     if (hasPrev && value !== prevValue.current) {
       setIsHighlighted(true);

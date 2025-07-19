@@ -5,8 +5,11 @@ import { HighlightedCell } from "~~/components/oracle/HighlightedCell";
 import { NodeRowProps } from "~~/components/oracle/types";
 import { Address } from "~~/components/scaffold-eth";
 import deployedContracts from "~~/contracts/deployedContracts";
+import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
+import { getHighlightColorForPrice } from "~~/utils/scaffold-eth/common";
+import { ContractName } from "~~/utils/scaffold-eth/contract";
 
-export const WhitelistRow = ({ address }: NodeRowProps) => {
+export const WhitelistRow = ({ address, index }: NodeRowProps) => {
   const simpleOracleAbi = deployedContracts[31337].SimpleOracle_1.abi; // TODO: fix this. Maybe put it in a separate file as a constant.
 
   const { data } = useReadContract({
@@ -14,6 +17,11 @@ export const WhitelistRow = ({ address }: NodeRowProps) => {
     abi: simpleOracleAbi,
     functionName: "getPrice",
   });
+
+  const { data: medianPrice } = useScaffoldReadContract({
+    contractName: "WhitelistOracle",
+    functionName: "getPrice",
+  }) as { data: bigint | undefined };
 
   const lastReportedPriceFormatted =
     data !== undefined ? Number(parseFloat(formatEther(data[0])).toFixed(2)) : "No price reported";
@@ -28,8 +36,12 @@ export const WhitelistRow = ({ address }: NodeRowProps) => {
       <td>
         <Address address={address} size="sm" format="short" onlyEnsOrAddress={true} />
       </td>
-      <EditableCell value={lastReportedPriceFormatted} contractName={contractName} />
-      <HighlightedCell value={lastReportedTime} highlightColor="">
+      <EditableCell
+        value={lastReportedPriceFormatted}
+        contractName={`SimpleOracle_${index + 1}` as ContractName}
+        highlightColor={getHighlightColorForPrice(data?.[0], medianPrice)}
+      />
+      <HighlightedCell value={lastReportedTime} highlightColor="bg-success">
         {lastReportedTime}
       </HighlightedCell>
     </tr>

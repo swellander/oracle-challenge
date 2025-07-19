@@ -7,7 +7,7 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 const deployedContracts = {
   31337: {
     SimpleOracle_1: {
-      address: "0x7a2088a1bFc9d81c55368AE168C2C02570cB814F",
+      address: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
       abi: [
         {
           inputs: [],
@@ -88,7 +88,7 @@ const deployedContracts = {
       inheritedFunctions: {},
     },
     SimpleOracle_10: {
-      address: "0x82C6D3ed4cD33d8EC1E51d0B5Cc1d822Eaa0c3dC",
+      address: "0x700b6A60ce7EaaEA56F065753d8dcB9653dbAD35",
       abi: [
         {
           inputs: [],
@@ -169,7 +169,7 @@ const deployedContracts = {
       inheritedFunctions: {},
     },
     SimpleOracle_2: {
-      address: "0x05Aa229Aec102f78CE0E852A812a388F076Aa555",
+      address: "0x8464135c8F25Da09e49BC8782676a84730C318bC",
       abi: [
         {
           inputs: [],
@@ -250,7 +250,7 @@ const deployedContracts = {
       inheritedFunctions: {},
     },
     SimpleOracle_3: {
-      address: "0x4F41b941940005aE25D5ecB0F01BaDbc7065E2dD",
+      address: "0x663F3ad617193148711d28f5334eE4Ed07016602",
       abi: [
         {
           inputs: [],
@@ -331,7 +331,7 @@ const deployedContracts = {
       inheritedFunctions: {},
     },
     SimpleOracle_4: {
-      address: "0x3da8641A0A974B70B73eDD7C504850Be08c0bc41",
+      address: "0x057ef64E23666F000b34aE31332854aCBd1c8544",
       abi: [
         {
           inputs: [],
@@ -412,7 +412,7 @@ const deployedContracts = {
       inheritedFunctions: {},
     },
     SimpleOracle_5: {
-      address: "0x8721edC85d8e0706bEA6AA965067531cf84629e4",
+      address: "0xbdEd0D2bf404bdcBa897a74E6657f1f12e5C6fb6",
       abi: [
         {
           inputs: [],
@@ -493,7 +493,7 @@ const deployedContracts = {
       inheritedFunctions: {},
     },
     SimpleOracle_6: {
-      address: "0x8aBb8E62Bd73f4c73b2CE7a02631B2dC911Ab720",
+      address: "0x0116686E2291dbd5e317F47faDBFb43B599786Ef",
       abi: [
         {
           inputs: [],
@@ -574,7 +574,7 @@ const deployedContracts = {
       inheritedFunctions: {},
     },
     SimpleOracle_7: {
-      address: "0x973Adb9DE34C974C3A421A870203C5be9059E9Fa",
+      address: "0x7ef8E99980Da5bcEDcF7C10f41E55f759F6A174B",
       abi: [
         {
           inputs: [],
@@ -655,7 +655,7 @@ const deployedContracts = {
       inheritedFunctions: {},
     },
     SimpleOracle_8: {
-      address: "0xc74f87d141ED8A41c32ec3d6947485b6f4c11e49",
+      address: "0xef11D1c2aA48826D4c41e54ab82D1Ff5Ad8A64Ca",
       abi: [
         {
           inputs: [],
@@ -736,7 +736,7 @@ const deployedContracts = {
       inheritedFunctions: {},
     },
     SimpleOracle_9: {
-      address: "0xBe0F340075060F856612d91e17cAe599dE92C745",
+      address: "0x95bD8D42f30351685e96C62EDdc0d0613bf9a87A",
       abi: [
         {
           inputs: [],
@@ -1068,7 +1068,7 @@ const deployedContracts = {
       inheritedFunctions: {},
     },
     WhitelistOracle: {
-      address: "0x09635F643e140090A9A8Dcd712eD6285858ceBef",
+      address: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
       abi: [
         {
           inputs: [],

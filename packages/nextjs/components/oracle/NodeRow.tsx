@@ -5,16 +5,7 @@ import { formatEther } from "viem";
 import { HighlightedCell } from "~~/components/oracle/HighlightedCell";
 import { Address } from "~~/components/scaffold-eth";
 import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
-
-const getHighlightColorForPrice = (currentPrice: bigint | undefined, medianPrice: bigint | undefined) => {
-  if (currentPrice === undefined || medianPrice === undefined) return "";
-  const medianPriceNum = Number(medianPrice);
-  if (medianPriceNum === 0) return "";
-  const percentageChange = Math.abs((Number(currentPrice) - medianPriceNum) / medianPriceNum) * 100;
-  if (percentageChange < 5) return "bg-success";
-  else if (percentageChange < 10) return "bg-warning";
-  else return "bg-error";
-};
+import { getHighlightColorForPrice } from "~~/utils/scaffold-eth/common";
 
 export const NodeRow = ({ address }: NodeRowProps) => {
   const { data = [] } = useScaffoldReadContract({

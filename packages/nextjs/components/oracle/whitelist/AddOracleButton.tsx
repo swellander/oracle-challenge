@@ -70,7 +70,7 @@ export const AddOracleButton = () => {
   };
 
   return (
-    <button className="btn btn-primary btn-sm font-normal gap-1" onClick={handleAddOracle}>
+    <button className="btn btn-primary h-full btn-sm font-normal gap-1" onClick={handleAddOracle}>
       <PlusIcon className="h-4 w-4" />
       <span>Add Oracle Node</span>
     </button>

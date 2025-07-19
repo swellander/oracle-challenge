@@ -1,3 +1,4 @@
+import { SimulationToggle } from "./SimulationToggle";
 import TooltipInfo from "~~/components/TooltipInfo";
 import { AddOracleButton } from "~~/components/oracle/whitelist/AddOracleButton";
 import { WhitelistRow } from "~~/components/oracle/whitelist/WhitelistRow";
@@ -46,10 +47,11 @@ export const WhitelistTable = () => {
 
   const isLoading = isLoadingOraclesAdded || isLoadingOraclesRemoved;
   const oracleAddresses = oraclesAdded
-    ?.filter(
-      oracle => !oraclesRemoved?.some(removedOracle => removedOracle.args.oracleAddress === oracle.args.oracleAddress),
-    )
-    .map(oracle => oracle.args.oracleAddress as string);
+    ?.map((item, index) => ({
+      address: item?.args?.oracleAddress as string,
+      originalIndex: index,
+    }))
+    ?.filter(item => !oraclesRemoved?.some(removedOracle => removedOracle.args.oracleAddress === item.address));
 
   const tooltipText = `This table displays authorized oracle nodes that provide price data to the system. Nodes are considered active if they've reported within the last 10 seconds (highlighted normally), while inactive nodes appear grayed out. You can edit the price of an oracle node by clicking on the price cell.`;
 
@@ -57,7 +59,10 @@ export const WhitelistTable = () => {
     <div className="flex flex-col gap-2">
       <div className="flex gap-2 justify-between">
         <h2 className="text-xl font-bold">Oracle Nodes</h2>
-        <AddOracleButton />
+        <div className="flex gap-2">
+          <AddOracleButton />
+          <SimulationToggle oracleAddresses={oracleAddresses ?? []} />
+        </div>
       </div>
       <div className="bg-base-100 rounded-lg p-4 relative">
         <TooltipInfo top={0} right={0} infoText={tooltipText} />
@@ -76,8 +81,8 @@ export const WhitelistTable = () => {
               ) : oracleAddresses?.length === 0 ? (
                 <NoNodesRow />
               ) : (
-                oracleAddresses?.map((address: string, index: number) => (
-                  <WhitelistRow key={index} index={index} address={address} />
+                oracleAddresses?.map((item, arrayIndex) => (
+                  <WhitelistRow key={arrayIndex} index={item.originalIndex} address={item.address} />
                 ))
               )}
             </tbody>
