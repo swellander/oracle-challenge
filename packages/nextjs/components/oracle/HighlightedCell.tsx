@@ -4,10 +4,14 @@ export const HighlightedCell = ({
   value,
   highlightColor,
   children,
+  className,
+  handleClick,
 }: {
   value: string | number;
   highlightColor: string;
   children: React.ReactNode;
+  className?: string;
+  handleClick?: () => void;
 }) => {
   const [isHighlighted, setIsHighlighted] = useState(false);
   const prevValue = useRef<number | undefined>(undefined);
@@ -24,5 +28,12 @@ export const HighlightedCell = ({
     prevValue.current = value;
   }, [value]);
 
-  return <td className={`transition-colors duration-300 ${isHighlighted ? highlightColor : ""}`}>{children}</td>;
+  return (
+    <td
+      className={`transition-colors duration-300 ${isHighlighted ? highlightColor : ""} ${className}`}
+      onClick={handleClick}
+    >
+      {children}
+    </td>
+  );
 };

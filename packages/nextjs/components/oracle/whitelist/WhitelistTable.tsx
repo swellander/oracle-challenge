@@ -51,6 +51,8 @@ export const WhitelistTable = () => {
     )
     .map(oracle => oracle.args.oracleAddress as string);
 
+  const tooltipText = `This table displays authorized oracle nodes that provide price data to the system. Nodes are considered active if they've reported within the last 10 seconds (highlighted normally), while inactive nodes appear grayed out. You can edit the price of an oracle node by clicking on the price cell.`;
+
   return (
     <div className="flex flex-col gap-2">
       <div className="flex gap-2 justify-between">
@@ -58,7 +60,7 @@ export const WhitelistTable = () => {
         <AddOracleButton />
       </div>
       <div className="bg-base-100 rounded-lg p-4 relative">
-        <TooltipInfo top={0} right={0} infoText="TODO: Update this tooltip" />
+        <TooltipInfo top={0} right={0} infoText={tooltipText} />
         <div className="overflow-x-auto">
           <table className="table w-full">
             <thead>

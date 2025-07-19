@@ -1,3 +1,4 @@
+import { EditableCell } from "../EditableCell";
 import { formatEther } from "viem";
 import { useReadContract } from "wagmi";
 import { HighlightedCell } from "~~/components/oracle/HighlightedCell";
@@ -23,13 +24,11 @@ export const WhitelistRow = ({ address }: NodeRowProps) => {
   const isActive = data !== undefined && data[1] !== undefined ? data[1] > currentTime - 10 : true;
 
   return (
-    <tr className={isActive ? "" : "bg-gray-300 opacity-50"}>
+    <tr className={`table-fixed ${isActive ? "" : "bg-gray-300 opacity-50"}`}>
       <td>
         <Address address={address} size="sm" format="short" onlyEnsOrAddress={true} />
       </td>
-      <HighlightedCell value={lastReportedPriceFormatted} highlightColor="">
-        {lastReportedPriceFormatted}
-      </HighlightedCell>
+      <EditableCell value={lastReportedPriceFormatted} contractName={contractName} />
       <HighlightedCell value={lastReportedTime} highlightColor="">
         {lastReportedTime}
       </HighlightedCell>
