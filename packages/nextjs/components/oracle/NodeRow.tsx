@@ -43,16 +43,14 @@ export const NodeRow = ({ address }: NodeRowProps) => {
 
   const stakedAmountFormatted = stakedAmount !== undefined ? Number(formatEther(stakedAmount)) : "Loading...";
   const lastReportedPriceFormatted =
-    lastReportedPrice !== undefined
-      ? Number(parseFloat(formatEther(lastReportedPrice)).toFixed(2))
-      : "No price reported";
+    lastReportedPrice !== undefined ? Number(parseFloat(formatEther(lastReportedPrice)).toFixed(2)) : "Not reported";
   const orcBalanceFormatted = orcBalance !== undefined ? Number(formatEther(orcBalance)) : "Loading...";
 
   // Check if staked amount is below minimum requirement
   const isInsufficientStake = stakedAmount !== undefined && minimumStake !== undefined && stakedAmount < minimumStake;
 
   return (
-    <tr className={isInsufficientStake ? "bg-gray-300 opacity-50" : ""}>
+    <tr className={isInsufficientStake ? "opacity-40" : ""}>
       <td>
         <Address address={address} size="sm" format="short" onlyEnsOrAddress={true} />
       </td>

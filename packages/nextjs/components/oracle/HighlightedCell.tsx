@@ -18,7 +18,7 @@ export const HighlightedCell = ({
 
   useEffect(() => {
     if (value === undefined) return;
-    if (value === "No price reported") return;
+    if (value === "Not reported") return;
     if (value === "Loading...") return;
     const hasPrev = typeof prevValue.current === "number" || typeof prevValue.current === "string";
 

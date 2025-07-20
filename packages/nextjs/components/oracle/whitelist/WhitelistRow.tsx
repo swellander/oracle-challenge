@@ -24,15 +24,14 @@ export const WhitelistRow = ({ address, index }: NodeRowProps) => {
   }) as { data: bigint | undefined };
 
   const lastReportedPriceFormatted =
-    data !== undefined ? Number(parseFloat(formatEther(data[0])).toFixed(2)) : "No price reported";
-  const lastReportedTime =
-    data !== undefined ? new Date(Number(data[1]) * 1000).toLocaleTimeString() : "No time reported";
+    data !== undefined ? Number(parseFloat(formatEther(data[0])).toFixed(2)) : "Not reported";
+  const lastReportedTime = data !== undefined ? new Date(Number(data[1]) * 1000).toLocaleTimeString() : "Not reported";
 
   const currentTime = new Date().getTime() / 1000;
   const isActive = data !== undefined && data[1] !== undefined ? data[1] > currentTime - 10 : true;
 
   return (
-    <tr className={`table-fixed ${isActive ? "" : "bg-gray-300 opacity-50"}`}>
+    <tr className={`table-fixed ${isActive ? "" : "opacity-40"}`}>
       <td>
         <Address address={address} size="sm" format="short" onlyEnsOrAddress={true} />
       </td>
