@@ -12,8 +12,7 @@ import { ContractName } from "~~/utils/scaffold-eth/contract";
 
 export const WhitelistRow = ({ address, index }: NodeRowProps) => {
   const simpleOracleAbi = deployedContracts[31337].SimpleOracle_1.abi; // TODO: fix this. Maybe put it in a separate file as a constant.
-  const contractNameSuffix = index !== undefined && index > 0 ? `_${index + 1}` : "";
-  const contractName = `SimpleOracle${contractNameSuffix}` as ContractName;
+  const contractName = `SimpleOracle_${index + 1}` as ContractName;
   const [isActive, setIsActive] = useState(true);
 
   const { data } = useReadContract({
