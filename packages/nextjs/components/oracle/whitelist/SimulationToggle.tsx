@@ -3,16 +3,21 @@ import { formatEther, parseEther } from "viem";
 import { useWriteContract } from "wagmi";
 import deployedContracts from "~~/contracts/deployedContracts";
 import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
+import { getParsedError, notification } from "~~/utils/scaffold-eth";
 
 export const SimulationToggle = ({
   oracleAddresses,
 }: {
   oracleAddresses: { address: string; originalIndex: number }[];
 }) => {
-  const { data: price } = useScaffoldReadContract({
+  const {
+    data: price,
+    error,
+    isError,
+  } = useScaffoldReadContract({
     contractName: "WhitelistOracle",
     functionName: "getPrice",
-  }) as { data: bigint | undefined };
+  }) as { data: bigint | undefined; error: Error | undefined; isError: boolean };
 
   const [isSimulating, setIsSimulating] = useState<boolean>(false);
 
@@ -65,24 +70,24 @@ export const SimulationToggle = ({
     }
   };
 
-  // Update prices for all oracles with staggered timing
-  const updateAllOracles = () => {
-    if (!oracleAddresses || oracleAddresses.length === 0) return;
-    if (price === undefined) return;
-
-    console.log(`🔄 Starting oracle update cycle for ${oracleAddresses.length} oracles`);
-    oracleAddresses.forEach((_, index) => {
-      setTimeout(() => {
-        handlePriceUpdate(index);
-      }, index * 200); // 200ms delay between each oracle update
-    });
-  };
-
   // Set up simulation with 4-second intervals
   useEffect(() => {
     if (!isSimulating) return;
 
     let intervalId: NodeJS.Timeout | null = null;
+
+    // Update prices for all oracles with staggered timing
+    const updateAllOracles = () => {
+      if (!oracleAddresses || oracleAddresses.length === 0) return;
+      if (price === undefined) return;
+
+      console.log(`🔄 Starting oracle update cycle for ${oracleAddresses.length} oracles`);
+      oracleAddresses.forEach((_, index) => {
+        setTimeout(() => {
+          handlePriceUpdate(index);
+        }, index * 200); // 200ms delay between each oracle update
+      });
+    };
 
     // Start immediately without initial delay
     updateAllOracles();
@@ -95,17 +100,29 @@ export const SimulationToggle = ({
     return () => {
       if (intervalId) clearInterval(intervalId);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSimulating, oracleAddresses]);
 
   const toggleSimulation = async () => {
+    if (!isSimulating && isError) {
+      notification.error(`${getParsedError(error)}`);
+      setIsSimulating(false);
+      return;
+    }
+    if (!isSimulating && price === undefined) {
+      notification.error("Price is undefined. Maybe there is no valid price available.");
+      setIsSimulating(false);
+      return;
+    }
+
     setIsSimulating(!isSimulating);
   };
 
   return (
-    <div className="bg-base-100 rounded-lg p-2">
+    <div className={`${isSimulating ? "bg-success/50" : "bg-base-100"} rounded-lg p-2 transition-colors duration-200`}>
       <div className="flex items-center justify-center gap-4">
         <h3 className="text-lg mb-0 font-bold text-base-content">Simulation</h3>
-        <input type="checkbox" className="toggle bg-white" onChange={toggleSimulation} checked={isSimulating} />
+        <input type="checkbox" className="toggle toggle-success" onChange={toggleSimulation} checked={isSimulating} />
       </div>
     </div>
   );
