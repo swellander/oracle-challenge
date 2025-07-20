@@ -15,6 +15,7 @@ const deployWhitelistOracleContracts: DeployFunction = async function (hre: Hard
   const publicClient = await viem.getPublicClient();
 
   console.log("Deploying WhitelistOracle contracts...");
+  const whitelistContractOwner = deployer;
 
   // Get 10 wallet clients (accounts)
   const accounts = await viem.getWalletClients();
@@ -93,6 +94,18 @@ const deployWhitelistOracleContracts: DeployFunction = async function (hre: Hard
     args: [],
   });
   console.log(`Initial median price: ${medianPrice.toString()}`);
+
+  if (deployer !== whitelistContractOwner) {
+    console.log("Transferring ownership of WhitelistOracle");
+    await deployerAccount.writeContract({
+      address: whitelistOracleAddress,
+      abi: whitelistOracleAbi,
+      functionName: "transferOwnership",
+      args: [whitelistContractOwner],
+    });
+    console.log("Ownership transferred successfully!");
+  }
+
   console.log("All oracle contracts deployed and configured successfully!");
 };
 

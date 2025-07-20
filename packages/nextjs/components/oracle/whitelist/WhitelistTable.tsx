@@ -1,4 +1,5 @@
 import TooltipInfo from "~~/components/TooltipInfo";
+import { AddOracleButton } from "~~/components/oracle/whitelist/AddOracleButton";
 import { WhitelistRow } from "~~/components/oracle/whitelist/WhitelistRow";
 import { useScaffoldEventHistory } from "~~/hooks/scaffold-eth";
 
@@ -33,12 +34,14 @@ export const WhitelistTable = () => {
     contractName: "WhitelistOracle",
     eventName: "OracleAdded",
     fromBlock: 0n,
+    watch: true,
   });
 
   const { data: oraclesRemoved, isLoading: isLoadingOraclesRemoved } = useScaffoldEventHistory({
     contractName: "WhitelistOracle",
     eventName: "OracleRemoved",
     fromBlock: 0n,
+    watch: true,
   });
 
   const isLoading = isLoadingOraclesAdded || isLoadingOraclesRemoved;
@@ -50,7 +53,10 @@ export const WhitelistTable = () => {
 
   return (
     <div className="flex flex-col gap-2">
-      <h2 className="text-xl font-bold">Oracle Nodes</h2>
+      <div className="flex gap-2 justify-between">
+        <h2 className="text-xl font-bold">Oracle Nodes</h2>
+        <AddOracleButton />
+      </div>
       <div className="bg-base-100 rounded-lg p-4 relative">
         <TooltipInfo top={0} right={0} infoText="TODO: Update this tooltip" />
         <div className="overflow-x-auto">
