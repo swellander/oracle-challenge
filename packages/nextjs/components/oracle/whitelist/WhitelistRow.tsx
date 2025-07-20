@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { EditableCell } from "../EditableCell";
 import { formatEther } from "viem";
 import { useReadContract } from "wagmi";
@@ -11,6 +12,9 @@ import { ContractName } from "~~/utils/scaffold-eth/contract";
 
 export const WhitelistRow = ({ address, index }: NodeRowProps) => {
   const simpleOracleAbi = deployedContracts[31337].SimpleOracle_1.abi; // TODO: fix this. Maybe put it in a separate file as a constant.
+  const contractNameSuffix = index !== undefined && index > 0 ? `_${index + 1}` : "";
+  const contractName = `SimpleOracle${contractNameSuffix}` as ContractName;
+  const [isActive, setIsActive] = useState(true);
 
   const { data } = useReadContract({
     address: address,
@@ -21,14 +25,31 @@ export const WhitelistRow = ({ address, index }: NodeRowProps) => {
   const { data: medianPrice } = useScaffoldReadContract({
     contractName: "WhitelistOracle",
     functionName: "getPrice",
+    watch: true,
   }) as { data: bigint | undefined };
 
   const lastReportedPriceFormatted =
     data !== undefined ? Number(parseFloat(formatEther(data[0])).toFixed(2)) : "Not reported";
   const lastReportedTime = data !== undefined ? new Date(Number(data[1]) * 1000).toLocaleTimeString() : "Not reported";
 
-  const currentTime = new Date().getTime() / 1000;
-  const isActive = data !== undefined && data[1] !== undefined ? data[1] > currentTime - 10 : true;
+  // Check if the node is active every 5 seconds
+  useEffect(() => {
+    const checkActive = () => {
+      const currentTime = new Date().getTime() / 1000;
+      // - 10 seconds, because the oracle is active for 10 seconds after reporting
+      const active = data !== undefined && data[1] !== undefined ? data[1] > currentTime - 10 : false;
+      setIsActive(active);
+    };
+
+    // Check immediately
+    checkActive();
+
+    // Set up interval to check every 5 seconds
+    const interval = setInterval(checkActive, 5000);
+
+    // Cleanup interval on component unmount or data change
+    return () => clearInterval(interval);
+  }, [data]);
 
   return (
     <tr className={`table-fixed ${isActive ? "" : "opacity-40"}`}>
@@ -37,7 +58,7 @@ export const WhitelistRow = ({ address, index }: NodeRowProps) => {
       </td>
       <EditableCell
         value={lastReportedPriceFormatted}
-        contractName={`SimpleOracle_${index + 1}` as ContractName}
+        contractName={contractName}
         highlightColor={getHighlightColorForPrice(data?.[0], medianPrice)}
       />
       <HighlightedCell value={lastReportedTime} highlightColor="bg-success">
