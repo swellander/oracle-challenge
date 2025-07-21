@@ -19,7 +19,7 @@ describe("WhitelistOracle", function () {
   });
 
   it("Should allow owner to add and remove oracles", async function () {
-    const oracle = await simpleOracleFactory.deploy(owner.address);
+    const oracle = await simpleOracleFactory.deploy();
 
     await whitelistOracle.addOracle(oracle.target);
 
@@ -31,13 +31,13 @@ describe("WhitelistOracle", function () {
   });
 
   it("Should not allow non-owner to add oracle", async function () {
-    const oracle = await simpleOracleFactory.deploy(owner.address);
+    const oracle = await simpleOracleFactory.deploy();
 
     await expect(whitelistOracle.connect(nonOwner).addOracle(oracle.target)).to.be.revertedWith("Not the owner");
   });
 
   it("Should not allow non-owner to remove oracle", async function () {
-    const oracle = await simpleOracleFactory.deploy(owner.address);
+    const oracle = await simpleOracleFactory.deploy();
 
     await whitelistOracle.connect(owner).addOracle(oracle.target);
 
@@ -45,7 +45,7 @@ describe("WhitelistOracle", function () {
   });
 
   it("Should emit OracleAdded event when an oracle is added", async function () {
-    const oracle = await simpleOracleFactory.deploy(owner.address);
+    const oracle = await simpleOracleFactory.deploy();
 
     const tx = await whitelistOracle.addOracle(oracle.target);
     const receipt = await tx.wait();
@@ -54,7 +54,7 @@ describe("WhitelistOracle", function () {
   });
 
   it("Should emit OracleRemoved event when an oracle is removed", async function () {
-    const oracle = await simpleOracleFactory.deploy(owner.address);
+    const oracle = await simpleOracleFactory.deploy();
 
     await whitelistOracle.addOracle(oracle.target);
 
@@ -66,7 +66,7 @@ describe("WhitelistOracle", function () {
   });
 
   it("Should revert when trying to remove an oracle with a non-existent index", async function () {
-    const oracle = await simpleOracleFactory.deploy(owner.address);
+    const oracle = await simpleOracleFactory.deploy();
 
     await whitelistOracle.addOracle(oracle.target);
 
@@ -83,7 +83,7 @@ describe("WhitelistOracle", function () {
   });
 
   it("Should return correct price with one oracle", async function () {
-    const oracle = await simpleOracleFactory.deploy(owner.address);
+    const oracle = await simpleOracleFactory.deploy();
 
     await whitelistOracle.addOracle(oracle.target);
 
@@ -94,9 +94,9 @@ describe("WhitelistOracle", function () {
   });
 
   it("Should return correct median price with odd number of oracles", async function () {
-    const oracle1 = await simpleOracleFactory.deploy(owner.address);
-    const oracle2 = await simpleOracleFactory.deploy(owner.address);
-    const oracle3 = await simpleOracleFactory.deploy(owner.address);
+    const oracle1 = await simpleOracleFactory.deploy();
+    const oracle2 = await simpleOracleFactory.deploy();
+    const oracle3 = await simpleOracleFactory.deploy();
 
     await whitelistOracle.addOracle(oracle1.target);
     await whitelistOracle.addOracle(oracle2.target);
@@ -117,10 +117,10 @@ describe("WhitelistOracle", function () {
   });
 
   it("Should return correct median price with even number of oracles", async function () {
-    const oracle1 = await simpleOracleFactory.deploy(owner.address);
-    const oracle2 = await simpleOracleFactory.deploy(owner.address);
-    const oracle3 = await simpleOracleFactory.deploy(owner.address);
-    const oracle4 = await simpleOracleFactory.deploy(owner.address);
+    const oracle1 = await simpleOracleFactory.deploy();
+    const oracle2 = await simpleOracleFactory.deploy();
+    const oracle3 = await simpleOracleFactory.deploy();
+    const oracle4 = await simpleOracleFactory.deploy();
 
     await whitelistOracle.addOracle(oracle1.target);
     await whitelistOracle.addOracle(oracle2.target);
@@ -142,9 +142,9 @@ describe("WhitelistOracle", function () {
   });
 
   it("Should exclude price reports older than 10 seconds from median calculation", async function () {
-    const oracle1 = await simpleOracleFactory.deploy(owner.address);
-    const oracle2 = await simpleOracleFactory.deploy(owner.address);
-    const oracle3 = await simpleOracleFactory.deploy(owner.address);
+    const oracle1 = await simpleOracleFactory.deploy();
+    const oracle2 = await simpleOracleFactory.deploy();
+    const oracle3 = await simpleOracleFactory.deploy();
 
     await whitelistOracle.addOracle(oracle1.target);
     await whitelistOracle.addOracle(oracle2.target);
@@ -168,8 +168,8 @@ describe("WhitelistOracle", function () {
   });
 
   it("Should revert when all price reports are older than 10 seconds", async function () {
-    const oracle1 = await simpleOracleFactory.deploy(owner.address);
-    const oracle2 = await simpleOracleFactory.deploy(owner.address);
+    const oracle1 = await simpleOracleFactory.deploy();
+    const oracle2 = await simpleOracleFactory.deploy();
 
     await whitelistOracle.addOracle(oracle1.target);
     await whitelistOracle.addOracle(oracle2.target);
