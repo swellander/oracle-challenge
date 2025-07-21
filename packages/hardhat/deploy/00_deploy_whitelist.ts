@@ -29,7 +29,7 @@ const deployWhitelistOracleContracts: DeployFunction = async function (hre: Hard
     const simpleOracle = await deploy(`SimpleOracle_${i + 1}`, {
       contract: "SimpleOracle",
       from: account.account.address,
-      args: [account.account.address], // Each oracle has its own owner
+      args: [],
       log: true,
       autoMine: true,
     });

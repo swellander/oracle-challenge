@@ -2,15 +2,12 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 contract SimpleOracle {
-    address public immutable owner;
     uint256 public price;
     uint256 public timestamp;
 
     event PriceUpdated(uint256 newPrice);
 
-    constructor(address _owner) {
-        owner = _owner;
-    }
+    constructor() {}
 
     // Note: In a real oracle implementation, this function would typically have
     // an onlyOwner modifier to restrict who can update prices. We've removed
