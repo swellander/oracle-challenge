@@ -5,25 +5,22 @@ import { useBlockNumber, useReadContract } from "wagmi";
 import { HighlightedCell } from "~~/components/oracle/HighlightedCell";
 import { NodeRowProps } from "~~/components/oracle/types";
 import { Address } from "~~/components/scaffold-eth";
-import deployedContracts from "~~/contracts/deployedContracts";
 import { useScaffoldReadContract, useSelectedNetwork } from "~~/hooks/scaffold-eth";
+import { SIMPLE_ORACLE_ABI } from "~~/utils/constants";
 import { getHighlightColorForPrice } from "~~/utils/scaffold-eth/common";
-import { ContractName } from "~~/utils/scaffold-eth/contract";
 
-export const WhitelistRow = ({ address, index }: NodeRowProps) => {
-  const simpleOracleAbi = deployedContracts[31337].SimpleOracle_1.abi; // TODO: fix this. Maybe put it in a separate file as a constant.
-  const contractName = `SimpleOracle_${index + 1}` as ContractName;
+export const WhitelistRow = ({ address }: NodeRowProps) => {
   const [isActive, setIsActive] = useState(true);
   const selectedNetwork = useSelectedNetwork();
 
   const { data, refetch } = useReadContract({
     address: address,
-    abi: simpleOracleAbi,
+    abi: SIMPLE_ORACLE_ABI,
     functionName: "getPrice",
     query: {
       enabled: true,
     },
-  });
+  }) as { data: readonly [bigint, bigint] | undefined; refetch: () => void };
 
   const { data: blockNumber } = useBlockNumber({
     watch: true,
@@ -73,7 +70,7 @@ export const WhitelistRow = ({ address, index }: NodeRowProps) => {
       </td>
       <EditableCell
         value={lastReportedPriceFormatted}
-        contractName={contractName}
+        address={address}
         highlightColor={getHighlightColorForPrice(data?.[0], medianPrice)}
       />
       <HighlightedCell value={lastReportedTime} highlightColor="bg-success">

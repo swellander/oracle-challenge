@@ -1,23 +1,23 @@
 import { useEffect, useRef, useState } from "react";
 import { HighlightedCell } from "./HighlightedCell";
 import { parseEther } from "viem";
-import { useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
+import { useWriteContract } from "wagmi";
+import { SIMPLE_ORACLE_ABI } from "~~/utils/constants";
 import { notification } from "~~/utils/scaffold-eth";
-import { ContractName } from "~~/utils/scaffold-eth/contract";
 
 type EditableCellProps = {
   value: string | number;
-  contractName: ContractName;
+  address: string;
   disabled?: boolean;
   highlightColor?: string;
 };
 
-export const EditableCell = ({ value, contractName, disabled = false, highlightColor = "" }: EditableCellProps) => {
+export const EditableCell = ({ value, address, disabled = false, highlightColor = "" }: EditableCellProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(Number(value.toString()) || "");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const { writeContractAsync } = useScaffoldWriteContract({ contractName });
+  const { writeContractAsync } = useWriteContract();
 
   // Update edit value when prop value changes
   useEffect(() => {
@@ -46,6 +46,8 @@ export const EditableCell = ({ value, contractName, disabled = false, highlightC
 
     try {
       await writeContractAsync({
+        abi: SIMPLE_ORACLE_ABI,
+        address: address,
         functionName: "setPrice",
         args: [parseEther(parsedValue.toString())],
       });

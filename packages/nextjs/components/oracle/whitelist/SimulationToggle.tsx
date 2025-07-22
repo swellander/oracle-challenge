@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
 import { parseEther } from "viem";
 import { useWriteContract } from "wagmi";
-import deployedContracts from "~~/contracts/deployedContracts";
 import { useGlobalState } from "~~/services/store/store";
-import { INITIAL_ETH_PRICE } from "~~/utils/constants";
+import { INITIAL_ETH_PRICE, SIMPLE_ORACLE_ABI } from "~~/utils/constants";
 import { getParsedError } from "~~/utils/scaffold-eth/getParsedError";
 import { notification } from "~~/utils/scaffold-eth/notification";
 
@@ -15,8 +14,6 @@ export const SimulationToggle = ({
   const nativeCurrencyPrice = useGlobalState(state => state.nativeCurrency.price);
   const [isSimulating, setIsSimulating] = useState<boolean>(false);
 
-  const abi_simple_oracle = deployedContracts[31337].SimpleOracle_1.abi;
-
   const { writeContractAsync } = useWriteContract();
 
   const handlePriceUpdate = async (index: number) => {
@@ -27,7 +24,6 @@ export const SimulationToggle = ({
     }
 
     if (
-      abi_simple_oracle === undefined ||
       !oracleAddresses ||
       index >= oracleAddresses.length ||
       !oracleAddresses[index] ||
@@ -47,7 +43,7 @@ export const SimulationToggle = ({
       const randomPrice = parseEther(String(basePrice + randomOffset));
 
       await writeContractAsync({
-        abi: abi_simple_oracle,
+        abi: SIMPLE_ORACLE_ABI,
         address: oracleAddresses[index].address,
         functionName: "setPrice",
         args: [randomPrice],
