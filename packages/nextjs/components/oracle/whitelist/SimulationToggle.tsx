@@ -1,24 +1,16 @@
 import { useEffect, useState } from "react";
-import { formatEther, parseEther } from "viem";
+import { parseEther } from "viem";
 import { useWriteContract } from "wagmi";
 import deployedContracts from "~~/contracts/deployedContracts";
-import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
-import { getParsedError, notification } from "~~/utils/scaffold-eth";
+import { useGlobalState } from "~~/services/store/store";
+import { INITIAL_ETH_PRICE } from "~~/utils/constants";
 
 export const SimulationToggle = ({
   oracleAddresses,
 }: {
   oracleAddresses: { address: string; originalIndex: number }[];
 }) => {
-  const {
-    data: price,
-    error,
-    isError,
-  } = useScaffoldReadContract({
-    contractName: "WhitelistOracle",
-    functionName: "getPrice",
-  }) as { data: bigint | undefined; error: Error | undefined; isError: boolean };
-
+  const nativeCurrencyPrice = useGlobalState(state => state.nativeCurrency.price);
   const [isSimulating, setIsSimulating] = useState<boolean>(false);
 
   const abi_simple_oracle = deployedContracts[31337].SimpleOracle_1.abi;
@@ -37,8 +29,7 @@ export const SimulationToggle = ({
       !oracleAddresses ||
       index >= oracleAddresses.length ||
       !oracleAddresses[index] ||
-      !oracleAddresses[index].address ||
-      price === undefined
+      !oracleAddresses[index].address
     ) {
       console.log(`Skipping price update for index ${index}: invalid oracle address`);
       return;
@@ -49,7 +40,7 @@ export const SimulationToggle = ({
       const variances = [5, 10, 20, 200, 500];
       const variance = variances[Math.floor(Math.random() * variances.length)];
       // Apply variance to price: random offset in [-variance, +variance]
-      const basePrice = Number(formatEther(price));
+      const basePrice = nativeCurrencyPrice > 0 ? nativeCurrencyPrice : INITIAL_ETH_PRICE;
       const randomOffset = Math.floor(Math.random() * (2 * variance + 1)) - variance;
       const randomPrice = parseEther(String(basePrice + randomOffset));
 
@@ -79,7 +70,6 @@ export const SimulationToggle = ({
     // Update prices for all oracles with staggered timing
     const updateAllOracles = () => {
       if (!oracleAddresses || oracleAddresses.length === 0) return;
-      if (price === undefined) return;
 
       console.log(`🔄 Starting oracle update cycle for ${oracleAddresses.length} oracles`);
       oracleAddresses.forEach((_, index) => {
@@ -104,17 +94,6 @@ export const SimulationToggle = ({
   }, [isSimulating, oracleAddresses]);
 
   const toggleSimulation = async () => {
-    if (!isSimulating && isError) {
-      notification.error(`${getParsedError(error)}`);
-      setIsSimulating(false);
-      return;
-    }
-    if (!isSimulating && price === undefined) {
-      notification.error("Price is undefined. Maybe there is no valid price available.");
-      setIsSimulating(false);
-      return;
-    }
-
     setIsSimulating(!isSimulating);
   };
 
