@@ -7,7 +7,7 @@ contract OptimisticOracle {
     error AssertionNotFound();
     error AssertionProposed();
     error NotEnoughValue();
-    error NotTime();
+    error InvalidTime();
     error ProposalDisputed();
     error NotProposedAssertion();
     error AlreadyClaimed();
@@ -94,7 +94,8 @@ contract OptimisticOracle {
             endTime = startTime + MINIMUM_DISPUTE_WINDOW;
         }
 
-        if (endTime < block.timestamp + MINIMUM_DISPUTE_WINDOW) revert NotTime();
+        if (startTime < block.timestamp) revert InvalidTime();
+        if (endTime < startTime + MINIMUM_DISPUTE_WINDOW) revert InvalidTime();
 
         assertions[assertionId] = EventAssertion({
             asserter: msg.sender,
@@ -123,16 +124,13 @@ contract OptimisticOracle {
 
         if (assertion.asserter == address(0)) revert AssertionNotFound();
         if (assertion.proposer != address(0)) revert AssertionProposed();
-        if (block.timestamp < assertion.startTime) revert NotTime();
-        if (block.timestamp > assertion.endTime) revert NotTime();
+        if (block.timestamp < assertion.startTime) revert InvalidTime();
+        if (block.timestamp > assertion.endTime) revert InvalidTime();
         if (msg.value != assertion.bond) revert NotEnoughValue();
 
         assertion.proposer = msg.sender;
         assertion.proposedOutcome = outcome;
-        // If someone proposes with less than the minimum dispute window remaining, extend the dispute window
-        if (assertion.endTime < block.timestamp + MINIMUM_DISPUTE_WINDOW) {
-            assertion.endTime = block.timestamp + MINIMUM_DISPUTE_WINDOW;
-        }
+        assertion.endTime = block.timestamp + MINIMUM_DISPUTE_WINDOW;
 
         emit OutcomeProposed(assertionId, msg.sender, outcome);
     }
@@ -145,24 +143,12 @@ contract OptimisticOracle {
 
         if (assertion.proposer == address(0)) revert NotProposedAssertion();
         if (assertion.disputer != address(0)) revert ProposalDisputed();
-        if (block.timestamp > assertion.endTime) revert NotTime();
+        if (block.timestamp > assertion.endTime) revert InvalidTime();
         if (msg.value != assertion.bond) revert NotEnoughValue();
 
         assertion.disputer = msg.sender;
 
         emit OutcomeDisputed(assertionId, msg.sender);
-    }
-
-    function _sendReward(uint256 assertionId, uint256 totalReward, address winner) internal {
-        // Send decider fee
-        (bool deciderSuccess, ) = payable(decider).call{value: DECIDER_FEE}("");
-        if (!deciderSuccess) revert TransferFailed();
-
-        // Send reward to winner
-        (bool winnerSuccess, ) = payable(winner).call{value: totalReward}("");
-        if (!winnerSuccess) revert TransferFailed();
-
-        emit RewardClaimed(assertionId, winner, totalReward);
     }
 
     /**
@@ -174,16 +160,20 @@ contract OptimisticOracle {
 
         if (assertion.proposer == address(0)) revert NotProposedAssertion();
         if (assertion.disputer != address(0)) revert ProposalDisputed();
-        if (block.timestamp <= assertion.endTime) revert NotTime();
+        if (block.timestamp <= assertion.endTime) revert InvalidTime();
         if (assertion.claimed) revert AlreadyClaimed();
 
         assertion.claimed = true;
         assertion.resolvedOutcome = assertion.proposedOutcome;
         assertion.winner = assertion.proposer;
 
-        uint256 totalReward = (assertion.reward + assertion.bond) - DECIDER_FEE;
+        uint256 totalReward = (assertion.reward + assertion.bond);
 
-        _sendReward(assertionId, totalReward, assertion.proposer);
+        // Send reward to winner
+        (bool winnerSuccess, ) = payable(assertion.proposer).call{value: totalReward}("");
+        if (!winnerSuccess) revert TransferFailed();
+
+        emit RewardClaimed(assertionId, assertion.proposer, totalReward);
     }
 
     /**
@@ -200,8 +190,17 @@ contract OptimisticOracle {
 
         assertion.claimed = true;
 
+        // Send decider fee
+        (bool deciderSuccess, ) = payable(decider).call{value: DECIDER_FEE}("");
+        if (!deciderSuccess) revert TransferFailed();
+        
         uint256 totalReward = (assertion.reward + assertion.bond + assertion.bond) - DECIDER_FEE; // reward + proposer bond + disputer bond - decider fee
-        _sendReward(assertionId, totalReward, assertion.winner);
+
+        // Send reward to winner
+        (bool winnerSuccess, ) = payable(assertion.winner).call{value: totalReward}("");
+        if (!winnerSuccess) revert TransferFailed();
+
+        emit RewardClaimed(assertionId, assertion.winner, totalReward);
     }
 
     /**
@@ -212,7 +211,7 @@ contract OptimisticOracle {
         EventAssertion storage assertion = assertions[assertionId];
 
         if (assertion.proposer != address(0)) revert AssertionProposed();
-        if (block.timestamp <= assertion.endTime) revert NotTime();
+        if (block.timestamp <= assertion.endTime) revert InvalidTime();
         if (assertion.claimed) revert AlreadyClaimed();
 
         assertion.claimed = true;
@@ -278,7 +277,7 @@ contract OptimisticOracle {
         if (a.asserter == address(0)) revert AssertionNotFound();
 
         if (a.disputer == address(0)) {
-            if (block.timestamp <= a.endTime) revert NotTime();
+            if (block.timestamp <= a.endTime) revert InvalidTime();
             return a.proposedOutcome;
         } else {
             if (a.winner == address(0)) revert AwaitingDecider();

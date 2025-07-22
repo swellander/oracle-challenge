@@ -213,7 +213,7 @@ describe("OptimisticOracle", function () {
       const bond = await optimisticOracle.FIXED_BOND();
       await expect(
         optimisticOracle.connect(disputer).disputeOutcome(assertionId, { value: bond }),
-      ).to.be.revertedWithCustomError(optimisticOracle, "NotTime");
+      ).to.be.revertedWithCustomError(optimisticOracle, "InvalidTime");
     });
 
     it("Should reject duplicate disputes", async function () {
@@ -257,7 +257,7 @@ describe("OptimisticOracle", function () {
       const finalBalance = await ethers.provider.getBalance(proposer.address);
 
       // Check that proposer received the reward (reward + bond - decider fee - gas costs)
-      const expectedReward = reward + (await optimisticOracle.FIXED_BOND()) - (await optimisticOracle.DECIDER_FEE());
+      const expectedReward = reward + (await optimisticOracle.FIXED_BOND());
       const gasCost = receipt!.gasUsed * receipt!.gasPrice!;
       expect(finalBalance - initialBalance + gasCost).to.equal(expectedReward);
     });
@@ -265,7 +265,7 @@ describe("OptimisticOracle", function () {
     it("Should reject claiming before deadline", async function () {
       await expect(optimisticOracle.connect(proposer).claimUndisputedReward(assertionId)).to.be.revertedWithCustomError(
         optimisticOracle,
-        "NotTime",
+        "InvalidTime",
       );
     });
 
@@ -579,13 +579,13 @@ describe("OptimisticOracle", function () {
       const bond = await optimisticOracle.FIXED_BOND();
       await expect(
         optimisticOracle.connect(proposer).proposeOutcome(assertionId, true, { value: bond }),
-      ).to.be.revertedWithCustomError(optimisticOracle, "NotTime");
+      ).to.be.revertedWithCustomError(optimisticOracle, "InvalidTime");
     });
 
     it("Should not allow proposal after endTime", async function () {
       const reward = ethers.parseEther("1");
       const now = (await ethers.provider.getBlock("latest"))!.timestamp;
-      const start = now;
+      const start = now + 1; // Start time must be in the future
       const end = now + 200; // 200 seconds, which is more than MINIMUM_DISPUTE_WINDOW (180 seconds)
       const tx = await optimisticOracle.connect(asserter).assertEvent("short event", start, end, { value: reward });
       const receipt = await tx.wait();
@@ -603,7 +603,7 @@ describe("OptimisticOracle", function () {
       const bond = await optimisticOracle.FIXED_BOND();
       await expect(
         optimisticOracle.connect(proposer).proposeOutcome(assertionId, true, { value: bond }),
-      ).to.be.revertedWithCustomError(optimisticOracle, "NotTime");
+      ).to.be.revertedWithCustomError(optimisticOracle, "InvalidTime");
     });
 
     it("Should allow proposal only within [startTime, endTime]", async function () {
@@ -625,7 +625,7 @@ describe("OptimisticOracle", function () {
       // Before startTime - should fail
       await expect(
         optimisticOracle.connect(proposer).proposeOutcome(assertionId, true, { value: bond }),
-      ).to.be.revertedWithCustomError(optimisticOracle, "NotTime");
+      ).to.be.revertedWithCustomError(optimisticOracle, "InvalidTime");
 
       // Move to startTime
       await ethers.provider.send("evm_increaseTime", [10]);
