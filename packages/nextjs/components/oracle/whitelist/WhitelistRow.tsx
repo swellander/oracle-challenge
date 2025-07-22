@@ -1,16 +1,16 @@
 import { formatEther } from "viem";
+import { useReadContract } from "wagmi";
 import { HighlightedCell } from "~~/components/oracle/HighlightedCell";
 import { NodeRowProps } from "~~/components/oracle/types";
 import { Address } from "~~/components/scaffold-eth";
-import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
-import { ContractName } from "~~/utils/scaffold-eth/contract";
+import deployedContracts from "~~/contracts/deployedContracts";
 
-export const WhitelistRow = ({ address, index }: NodeRowProps) => {
-  const contractNameSuffix = index !== undefined && index > 0 ? `_${index + 1}` : "";
-  const contractName = `SimpleOracle${contractNameSuffix}` as ContractName;
+export const WhitelistRow = ({ address }: NodeRowProps) => {
+  const simpleOracleAbi = deployedContracts[31337].SimpleOracle_1.abi; // TODO: fix this. Maybe put it in a separate file as a constant.
 
-  const { data } = useScaffoldReadContract({
-    contractName: contractName,
+  const { data } = useReadContract({
+    address: address,
+    abi: simpleOracleAbi,
     functionName: "getPrice",
   });
 

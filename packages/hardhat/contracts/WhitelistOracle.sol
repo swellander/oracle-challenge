@@ -76,4 +76,10 @@ contract WhitelistOracle {
 
         return median;
     }
+
+    function transferOwnership(address newOwner) public onlyOwner {
+        require(newOwner != address(0), "New owner cannot be zero address");
+        require(newOwner != owner, "New owner cannot be the same as current owner");
+        owner = newOwner;
+    }
 }
