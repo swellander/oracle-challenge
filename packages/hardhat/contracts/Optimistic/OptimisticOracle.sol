@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
-import { Decider } from "./Decider.sol";
-
 contract OptimisticOracle {
     enum State { Invalid, Asserted, Proposed, Disputed, Settled, Expired }
 
@@ -39,7 +37,7 @@ contract OptimisticOracle {
     uint256 public constant FIXED_BOND = 0.1 ether;
     uint256 public constant DECIDER_FEE = 0.2 ether;
     uint256 public constant MINIMUM_REWARD = DECIDER_FEE + 0.01 ether;
-    Decider public decider;
+    address public decider;
     address public owner;
     uint256 public nextAssertionId = 1;
     mapping(uint256 => EventAssertion) public assertions;
@@ -53,7 +51,7 @@ contract OptimisticOracle {
     event RefundClaimed(uint256 assertionId, address asserter, uint256 amount);
 
     modifier onlyDecider() {
-        if (msg.sender != address(decider)) revert OnlyDecider();
+        if (msg.sender != decider) revert OnlyDecider();
         _;
     }
 
@@ -63,7 +61,7 @@ contract OptimisticOracle {
     }
 
     constructor(address _decider) {
-        decider = Decider(payable(_decider));
+        decider = _decider;
         owner = msg.sender;
     }
 
@@ -72,7 +70,7 @@ contract OptimisticOracle {
      */
     function setDecider(address _decider) external onlyOwner {
         address oldDecider = address(decider);
-        decider = Decider(payable(_decider));
+        decider = _decider;
         emit DeciderUpdated(oldDecider, _decider);
     }
 
@@ -157,7 +155,7 @@ contract OptimisticOracle {
 
     function _sendReward(uint256 assertionId, uint256 totalReward, address winner) internal {
         // Send decider fee
-        (bool deciderSuccess, ) = payable(address(decider)).call{value: DECIDER_FEE}("");
+        (bool deciderSuccess, ) = payable(decider).call{value: DECIDER_FEE}("");
         if (!deciderSuccess) revert TransferFailed();
 
         // Send reward to winner
