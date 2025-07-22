@@ -4,6 +4,8 @@ import { useWriteContract } from "wagmi";
 import deployedContracts from "~~/contracts/deployedContracts";
 import { useGlobalState } from "~~/services/store/store";
 import { INITIAL_ETH_PRICE } from "~~/utils/constants";
+import { getParsedError } from "~~/utils/scaffold-eth/getParsedError";
+import { notification } from "~~/utils/scaffold-eth/notification";
 
 export const SimulationToggle = ({
   oracleAddresses,
@@ -55,8 +57,11 @@ export const SimulationToggle = ({
       // Handle nonce errors more gracefully
       if (error?.message?.includes("nonce") || error?.message?.includes("Nonce")) {
         console.log(`Nonce conflict for oracle ${index}, will retry on next cycle`);
+      } else if (error?.message?.includes("enough funds")) {
+        notification.error("Not enough funds to update price");
+        setIsSimulating(false);
       } else {
-        console.log(`Error updating price for oracle ${index}:`, error?.message || error);
+        notification.error(`Error updating price for oracle ${index}: ${getParsedError(error)}`);
       }
     }
   };
@@ -91,7 +96,7 @@ export const SimulationToggle = ({
       if (intervalId) clearInterval(intervalId);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isSimulating, oracleAddresses]);
+  }, [isSimulating]);
 
   const toggleSimulation = async () => {
     setIsSimulating(!isSimulating);

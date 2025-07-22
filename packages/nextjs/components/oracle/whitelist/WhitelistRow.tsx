@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { EditableCell } from "../EditableCell";
 import { formatEther } from "viem";
-import { useReadContract } from "wagmi";
+import { useBlockNumber, useReadContract } from "wagmi";
 import { HighlightedCell } from "~~/components/oracle/HighlightedCell";
 import { NodeRowProps } from "~~/components/oracle/types";
 import { Address } from "~~/components/scaffold-eth";
 import deployedContracts from "~~/contracts/deployedContracts";
-import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
+import { useScaffoldReadContract, useSelectedNetwork } from "~~/hooks/scaffold-eth";
 import { getHighlightColorForPrice } from "~~/utils/scaffold-eth/common";
 import { ContractName } from "~~/utils/scaffold-eth/contract";
 
@@ -14,12 +14,28 @@ export const WhitelistRow = ({ address, index }: NodeRowProps) => {
   const simpleOracleAbi = deployedContracts[31337].SimpleOracle_1.abi; // TODO: fix this. Maybe put it in a separate file as a constant.
   const contractName = `SimpleOracle_${index + 1}` as ContractName;
   const [isActive, setIsActive] = useState(true);
+  const selectedNetwork = useSelectedNetwork();
 
-  const { data } = useReadContract({
+  const { data, refetch } = useReadContract({
     address: address,
     abi: simpleOracleAbi,
     functionName: "getPrice",
+    query: {
+      enabled: true,
+    },
   });
+
+  const { data: blockNumber } = useBlockNumber({
+    watch: true,
+    chainId: selectedNetwork.id,
+    query: {
+      enabled: true,
+    },
+  });
+
+  useEffect(() => {
+    refetch();
+  }, [blockNumber, refetch]);
 
   const { data: medianPrice } = useScaffoldReadContract({
     contractName: "WhitelistOracle",
