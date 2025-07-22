@@ -4,7 +4,7 @@ import { PlusIcon } from "@heroicons/react/24/outline";
 import { useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 import { useGlobalState } from "~~/services/store/store";
 import { INITIAL_ETH_PRICE, SIMPLE_ORACLE_ABI, SIMPLE_ORACLE_BYTECODE } from "~~/utils/constants";
-import { getParsedError, notification } from "~~/utils/scaffold-eth";
+import { notification } from "~~/utils/scaffold-eth";
 
 export const AddOracleButton = () => {
   const { data: walletClient } = useWalletClient();
@@ -60,7 +60,6 @@ export const AddOracleButton = () => {
       });
     } catch (error: any) {
       console.log("Error adding oracle:", error);
-      notification.error(`Failed to add oracle: ${getParsedError(error)}`);
     }
   };
 

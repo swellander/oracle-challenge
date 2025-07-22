@@ -2,17 +2,17 @@ import { useEffect, useRef, useState } from "react";
 import { HighlightedCell } from "./HighlightedCell";
 import { parseEther } from "viem";
 import { useWriteContract } from "wagmi";
+import { PencilIcon } from "@heroicons/react/24/outline";
 import { SIMPLE_ORACLE_ABI } from "~~/utils/constants";
 import { notification } from "~~/utils/scaffold-eth";
 
 type EditableCellProps = {
   value: string | number;
   address: string;
-  disabled?: boolean;
   highlightColor?: string;
 };
 
-export const EditableCell = ({ value, address, disabled = false, highlightColor = "" }: EditableCellProps) => {
+export const EditableCell = ({ value, address, highlightColor = "" }: EditableCellProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(Number(value.toString()) || "");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -34,9 +34,7 @@ export const EditableCell = ({ value, address, disabled = false, highlightColor 
     }
   }, [isEditing]);
 
-  const handleSubmit = async (event: React.MouseEvent) => {
-    event.stopPropagation();
-
+  const handleSubmit = async () => {
     const parsedValue = Number(editValue);
 
     if (isNaN(parsedValue)) {
@@ -57,24 +55,16 @@ export const EditableCell = ({ value, address, disabled = false, highlightColor 
     }
   };
 
-  const handleCancel = (event: React.MouseEvent) => {
-    event.stopPropagation();
+  const handleCancel = () => {
     setIsEditing(false);
   };
 
   const startEditing = () => {
-    if (!disabled) {
-      setIsEditing(true);
-    }
+    setIsEditing(true);
   };
 
   return (
-    <HighlightedCell
-      value={value}
-      highlightColor={highlightColor}
-      className={`w-[40%] max-w-[40%] overflow-hidden ${!disabled ? "cursor-pointer" : "cursor-default"}`}
-      handleClick={startEditing}
-    >
+    <HighlightedCell value={value} highlightColor={highlightColor} className={`w-[40%] max-w-[40%] overflow-hidden`}>
       <div className="flex w-full items-start">
         {/* 70% width for value display/editing */}
         <div className="w-[70%]">
@@ -89,7 +79,12 @@ export const EditableCell = ({ value, address, disabled = false, highlightColor 
               />
             </div>
           ) : (
-            <div>{value}</div>
+            <div className="flex items-center gap-2 h-full items-stretch">
+              {value}
+              <button className="px-2 text-sm bg-primary rounded" onClick={startEditing}>
+                <PencilIcon className="w-2.5 h-2.5" />
+              </button>
+            </div>
           )}
         </div>
 
