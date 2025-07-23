@@ -24,8 +24,8 @@ export const SimulationToggle = ({
     setIsClient(true);
   }, []);
 
-  const handlePriceUpdate = async (address: string, nonce: number) => {
-    if (!isClient) return; // Prevent execution during SSR
+  const handlePriceUpdate = async (address: string, nonce: number): Promise<`0x${string}` | null> => {
+    if (!isClient) return null; // Prevent execution during SSR
 
     try {
       const variances = [5, 10, 20, 200, 500];
@@ -35,7 +35,7 @@ export const SimulationToggle = ({
       const randomOffset = Math.floor(Math.random() * (2 * variance + 1)) - variance;
       const randomPrice = parseEther(String(basePrice + randomOffset));
 
-      await writeContractAsync({
+      const result = await writeContractAsync({
         abi: SIMPLE_ORACLE_ABI,
         address: address,
         functionName: "setPrice",
@@ -43,6 +43,7 @@ export const SimulationToggle = ({
         nonce: nonce,
       });
       console.log(`Oracle ${address} updated price to ${randomPrice}`);
+      return result;
     } catch (error: any) {
       if (error?.message.includes("enough funds")) {
         console.log("Not enough funds to update price");
@@ -53,6 +54,7 @@ export const SimulationToggle = ({
       } else {
         notification.error(`Error updating price for oracle ${address}: ${getParsedError(error)}`);
       }
+      return null;
     }
   };
 
@@ -77,15 +79,17 @@ export const SimulationToggle = ({
 
       console.log(`🔄 Starting oracle update cycle for ${oracleAddresses.length} oracles`);
       let nonce = latestNonce;
-      oracleAddresses.forEach(oracle => {
-        // 40% chance to skip reporting (simulate oracle not responding)
-        if (Math.random() < 0.4) {
-          console.log(`Oracle ${oracle.address} skipped reporting this cycle (60% chance)`);
-        } else {
-          handlePriceUpdate(oracle.address, nonce);
-          nonce++;
-        }
-      });
+      await Promise.all(
+        oracleAddresses.map(oracle => {
+          // 40% chance to skip reporting (simulate oracle not responding)
+          if (Math.random() < 0.4) {
+            console.log(`Oracle ${oracle.address} skipped reporting this cycle (60% chance)`);
+            return Promise.resolve();
+          } else {
+            return handlePriceUpdate(oracle.address, nonce++);
+          }
+        }),
+      );
       await (publicClient as any).request({
         method: "evm_mine",
       });
