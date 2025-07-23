@@ -13,12 +13,20 @@ export const SimulationToggle = ({
 }) => {
   const nativeCurrencyPrice = useGlobalState(state => state.nativeCurrency.price);
   const [isSimulating, setIsSimulating] = useState<boolean>(false);
+  const [isClient, setIsClient] = useState(false);
   const publicClient = usePublicClient();
   const { address: connectedAddress } = useAccount();
 
   const { writeContractAsync } = useWriteContract();
 
+  // Ensure we're on the client side before using Math.random()
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   const handlePriceUpdate = async (address: string, nonce: number) => {
+    if (!isClient) return; // Prevent execution during SSR
+
     try {
       const variances = [5, 10, 20, 200, 500];
       const variance = variances[Math.floor(Math.random() * variances.length)];
@@ -36,12 +44,12 @@ export const SimulationToggle = ({
       });
       console.log(`Oracle ${address} updated price to ${randomPrice}`);
     } catch (error: any) {
-      // Handle nonce errors more gracefully
-      if (error?.message?.includes("nonce") || error?.message?.includes("Nonce")) {
-        console.log(`Nonce conflict for oracle ${address}, will retry on next cycle`);
-      } else if (error?.message?.includes("enough funds")) {
-        notification.error("Not enough funds to update price");
+      if (error?.message.includes("enough funds")) {
+        console.log("Not enough funds to update price");
+        notification.error("Not enough funds to update price. Please use faucet to top up your balance.");
         setIsSimulating(false);
+      } else if (error?.message?.includes("nonce") || error?.message?.includes("Nonce")) {
+        console.log(`Nonce conflict for oracle ${address}, will retry on next cycle`);
       } else {
         notification.error(`Error updating price for oracle ${address}: ${getParsedError(error)}`);
       }
@@ -50,7 +58,7 @@ export const SimulationToggle = ({
 
   // Set up simulation with 4-second intervals
   useEffect(() => {
-    if (!isSimulating) return;
+    if (!isSimulating || !isClient) return;
 
     let intervalId: NodeJS.Timeout | null = null;
 
@@ -87,11 +95,16 @@ export const SimulationToggle = ({
       if (intervalId) clearInterval(intervalId);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isSimulating]);
+  }, [isSimulating, isClient]);
 
   const toggleSimulation = async () => {
     setIsSimulating(!isSimulating);
   };
+
+  // Don't render the toggle until we're on the client to prevent hydration mismatch
+  if (!isClient) {
+    return null;
+  }
 
   return (
     <div className={`${isSimulating ? "bg-success/50" : "bg-base-100"} rounded-lg p-2 transition-colors duration-200`}>

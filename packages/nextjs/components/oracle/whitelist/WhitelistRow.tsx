@@ -11,7 +11,12 @@ import { getHighlightColorForPrice } from "~~/utils/scaffold-eth/common";
 
 export const WhitelistRow = ({ address }: NodeRowProps) => {
   const [isActive, setIsActive] = useState(true);
+  const [isClient, setIsClient] = useState(false);
   const selectedNetwork = useSelectedNetwork();
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const { data, refetch } = useReadContract({
     address: address,
@@ -42,7 +47,10 @@ export const WhitelistRow = ({ address }: NodeRowProps) => {
 
   const lastReportedPriceFormatted =
     data !== undefined ? Number(parseFloat(formatEther(data[0])).toFixed(2)) : "Not reported";
-  const lastReportedTime = data !== undefined ? new Date(Number(data[1]) * 1000).toLocaleTimeString() : "Not reported";
+
+  // Use client-side only rendering for time to prevent hydration mismatches
+  const lastReportedTime =
+    isClient && data !== undefined ? new Date(Number(data[1]) * 1000).toLocaleTimeString() : "Not reported";
 
   // Check if the node is active every 5 seconds
   useEffect(() => {
