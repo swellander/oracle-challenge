@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { parseEther } from "viem";
-import { useWriteContract } from "wagmi";
+import { useAccount, usePublicClient, useWriteContract } from "wagmi";
 import { useGlobalState } from "~~/services/store/store";
 import { INITIAL_ETH_PRICE, SIMPLE_ORACLE_ABI } from "~~/utils/constants";
 import { getParsedError } from "~~/utils/scaffold-eth/getParsedError";
@@ -13,28 +13,13 @@ export const SimulationToggle = ({
 }) => {
   const nativeCurrencyPrice = useGlobalState(state => state.nativeCurrency.price);
   const [isSimulating, setIsSimulating] = useState<boolean>(false);
+  const publicClient = usePublicClient();
+  const { address: connectedAddress } = useAccount();
 
   const { writeContractAsync } = useWriteContract();
 
-  const handlePriceUpdate = async (index: number) => {
-    // 40% chance to skip reporting (simulate oracle not responding)
-    if (Math.random() < 0.4) {
-      console.log(`Oracle ${index} skipped reporting this cycle (60% chance)`);
-      return;
-    }
-
-    if (
-      !oracleAddresses ||
-      index >= oracleAddresses.length ||
-      !oracleAddresses[index] ||
-      !oracleAddresses[index].address
-    ) {
-      console.log(`Skipping price update for index ${index}: invalid oracle address`);
-      return;
-    }
-
+  const handlePriceUpdate = async (address: string, nonce: number) => {
     try {
-      // Choose variance from 5, 10, 20, 200, 500
       const variances = [5, 10, 20, 200, 500];
       const variance = variances[Math.floor(Math.random() * variances.length)];
       // Apply variance to price: random offset in [-variance, +variance]
@@ -44,20 +29,21 @@ export const SimulationToggle = ({
 
       await writeContractAsync({
         abi: SIMPLE_ORACLE_ABI,
-        address: oracleAddresses[index].address,
+        address: address,
         functionName: "setPrice",
         args: [randomPrice],
+        nonce: nonce,
       });
-      console.log(`Oracle ${index} updated price to ${randomPrice}`);
+      console.log(`Oracle ${address} updated price to ${randomPrice}`);
     } catch (error: any) {
       // Handle nonce errors more gracefully
       if (error?.message?.includes("nonce") || error?.message?.includes("Nonce")) {
-        console.log(`Nonce conflict for oracle ${index}, will retry on next cycle`);
+        console.log(`Nonce conflict for oracle ${address}, will retry on next cycle`);
       } else if (error?.message?.includes("enough funds")) {
         notification.error("Not enough funds to update price");
         setIsSimulating(false);
       } else {
-        notification.error(`Error updating price for oracle ${index}: ${getParsedError(error)}`);
+        notification.error(`Error updating price for oracle ${address}: ${getParsedError(error)}`);
       }
     }
   };
@@ -69,14 +55,23 @@ export const SimulationToggle = ({
     let intervalId: NodeJS.Timeout | null = null;
 
     // Update prices for all oracles with staggered timing
-    const updateAllOracles = () => {
-      if (!oracleAddresses || oracleAddresses.length === 0) return;
+    const updateAllOracles = async () => {
+      if (!oracleAddresses || oracleAddresses.length === 0 || !connectedAddress || !publicClient) return;
+      const latestNonce = await publicClient.getTransactionCount({
+        address: connectedAddress,
+        blockTag: "latest",
+      });
 
       console.log(`🔄 Starting oracle update cycle for ${oracleAddresses.length} oracles`);
-      oracleAddresses.forEach((_, index) => {
-        setTimeout(() => {
-          handlePriceUpdate(index);
-        }, index * 200); // 200ms delay between each oracle update
+      let nonce = latestNonce;
+      oracleAddresses.forEach(oracle => {
+        // 40% chance to skip reporting (simulate oracle not responding)
+        if (Math.random() < 0.4) {
+          console.log(`Oracle ${oracle.address} skipped reporting this cycle (60% chance)`);
+        } else {
+          handlePriceUpdate(oracle.address, nonce);
+          nonce++;
+        }
       });
     };
 
