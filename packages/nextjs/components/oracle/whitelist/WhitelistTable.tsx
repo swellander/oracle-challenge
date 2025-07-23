@@ -1,8 +1,9 @@
 import { SimulationToggle } from "./SimulationToggle";
+import { hardhat } from "viem/chains";
 import TooltipInfo from "~~/components/TooltipInfo";
 import { AddOracleButton } from "~~/components/oracle/whitelist/AddOracleButton";
 import { WhitelistRow } from "~~/components/oracle/whitelist/WhitelistRow";
-import { useScaffoldEventHistory, useScaffoldReadContract, useSelectedNetwork } from "~~/hooks/scaffold-eth";
+import { useScaffoldEventHistory, useScaffoldReadContract, useTargetNetwork } from "~~/hooks/scaffold-eth";
 
 const LoadingRow = () => {
   return (
@@ -31,7 +32,8 @@ const NoNodesRow = () => {
 };
 
 export const WhitelistTable = () => {
-  const selectedNetwork = useSelectedNetwork();
+  const { targetNetwork } = useTargetNetwork();
+  const isLocalNetwork = targetNetwork.id === hardhat.id;
 
   const { data: oraclesAdded, isLoading: isLoadingOraclesAdded } = useScaffoldEventHistory({
     contractName: "WhitelistOracle",
@@ -69,9 +71,7 @@ export const WhitelistTable = () => {
         <h2 className="text-xl font-bold">Oracle Nodes</h2>
         <div className="flex gap-2">
           <AddOracleButton />
-          {(selectedNetwork.id === 1337 || selectedNetwork.id === 31337) && (
-            <SimulationToggle oracleAddresses={oracleAddresses ?? []} />
-          )}
+          {isLocalNetwork && <SimulationToggle oracleAddresses={oracleAddresses ?? []} />}
         </div>
       </div>
       <div className="bg-base-100 rounded-lg p-4 relative">
