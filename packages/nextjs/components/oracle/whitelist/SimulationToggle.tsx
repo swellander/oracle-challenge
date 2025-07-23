@@ -69,6 +69,11 @@ export const SimulationToggle = ({
         address: connectedAddress,
         blockTag: "latest",
       });
+      // Turn off automine
+      await (publicClient as any).request({
+        method: "evm_setAutomine",
+        params: [false],
+      });
 
       console.log(`🔄 Starting oracle update cycle for ${oracleAddresses.length} oracles`);
       let nonce = latestNonce;
@@ -80,6 +85,13 @@ export const SimulationToggle = ({
           handlePriceUpdate(oracle.address, nonce);
           nonce++;
         }
+      });
+      await (publicClient as any).request({
+        method: "evm_mine",
+      });
+      await (publicClient as any).request({
+        method: "evm_setAutomine",
+        params: [true],
       });
     };
 

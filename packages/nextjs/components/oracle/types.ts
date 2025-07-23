@@ -3,6 +3,10 @@ export interface NodeRowProps {
   index: number;
 }
 
+export interface WhitelistRowProps extends NodeRowProps {
+  isActive: boolean;
+}
+
 export interface NodeInfo {
   stakedAmount: bigint | undefined;
   lastReportedPrice: bigint | undefined;

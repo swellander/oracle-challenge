@@ -77,6 +77,26 @@ contract WhitelistOracle {
         return median;
     }
 
+    function getActiveOracleNodes() public view returns (address[] memory) {
+        address[] memory tempNodes = new address[](oracles.length);
+        uint256 count = 0;
+
+        for (uint256 i = 0; i < oracles.length; i++) {
+            (, uint256 timestamp) = oracles[i].getPrice();
+            if (timestamp > block.timestamp - 10) {
+                tempNodes[count] = address(oracles[i]);
+                count++;
+            }
+        }
+
+        address[] memory activeNodes = new address[](count);
+        for (uint256 j = 0; j < count; j++) {
+            activeNodes[j] = tempNodes[j];
+        }
+
+        return activeNodes;
+    }
+
     function transferOwnership(address newOwner) public onlyOwner {
         require(newOwner != address(0), "New owner cannot be zero address");
         require(newOwner != owner, "New owner cannot be the same as current owner");

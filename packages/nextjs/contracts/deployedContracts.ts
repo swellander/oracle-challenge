@@ -817,7 +817,7 @@ const deployedContracts = {
       inheritedFunctions: {},
     },
     StakingOracle: {
-      address: "0x9A676e781A523b5d0C0e43731313A708CB607508",
+      address: "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82",
       abi: [
         {
           inputs: [],
@@ -1112,6 +1112,19 @@ const deployedContracts = {
           name: "addOracle",
           outputs: [],
           stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "getActiveOracleNodes",
+          outputs: [
+            {
+              internalType: "address[]",
+              name: "",
+              type: "address[]",
+            },
+          ],
+          stateMutability: "view",
           type: "function",
         },
         {

@@ -2,7 +2,7 @@ import { SimulationToggle } from "./SimulationToggle";
 import TooltipInfo from "~~/components/TooltipInfo";
 import { AddOracleButton } from "~~/components/oracle/whitelist/AddOracleButton";
 import { WhitelistRow } from "~~/components/oracle/whitelist/WhitelistRow";
-import { useScaffoldEventHistory } from "~~/hooks/scaffold-eth";
+import { useScaffoldEventHistory, useScaffoldReadContract, useSelectedNetwork } from "~~/hooks/scaffold-eth";
 
 const LoadingRow = () => {
   return (
@@ -31,6 +31,8 @@ const NoNodesRow = () => {
 };
 
 export const WhitelistTable = () => {
+  const selectedNetwork = useSelectedNetwork();
+
   const { data: oraclesAdded, isLoading: isLoadingOraclesAdded } = useScaffoldEventHistory({
     contractName: "WhitelistOracle",
     eventName: "OracleAdded",
@@ -42,6 +44,12 @@ export const WhitelistTable = () => {
     contractName: "WhitelistOracle",
     eventName: "OracleRemoved",
     fromBlock: 0n,
+    watch: true,
+  });
+
+  const { data: activeOracleNodes } = useScaffoldReadContract({
+    contractName: "WhitelistOracle",
+    functionName: "getActiveOracleNodes",
     watch: true,
   });
 
@@ -61,7 +69,9 @@ export const WhitelistTable = () => {
         <h2 className="text-xl font-bold">Oracle Nodes</h2>
         <div className="flex gap-2">
           <AddOracleButton />
-          <SimulationToggle oracleAddresses={oracleAddresses ?? []} />
+          {(selectedNetwork.id === 1337 || selectedNetwork.id === 31337) && (
+            <SimulationToggle oracleAddresses={oracleAddresses ?? []} />
+          )}
         </div>
       </div>
       <div className="bg-base-100 rounded-lg p-4 relative">
@@ -82,7 +92,12 @@ export const WhitelistTable = () => {
                 <NoNodesRow />
               ) : (
                 oracleAddresses?.map((item, arrayIndex) => (
-                  <WhitelistRow key={arrayIndex} index={item.originalIndex} address={item.address} />
+                  <WhitelistRow
+                    key={arrayIndex}
+                    index={item.originalIndex}
+                    address={item.address}
+                    isActive={activeOracleNodes?.includes(item.address) ?? false}
+                  />
                 ))
               )}
             </tbody>
