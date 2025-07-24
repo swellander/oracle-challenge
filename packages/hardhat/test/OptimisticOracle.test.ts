@@ -49,10 +49,12 @@ describe("OptimisticOracle", function () {
     });
 
     it("Should have correct constants", async function () {
+      const minimumAssertionWindow = await optimisticOracle.MINIMUM_ASSERTION_WINDOW();
       const minimumDisputeWindow = await optimisticOracle.MINIMUM_DISPUTE_WINDOW();
       const fixedBond = await optimisticOracle.FIXED_BOND();
       const deciderFee = await optimisticOracle.DECIDER_FEE();
 
+      expect(minimumAssertionWindow).to.equal(180n); // 3 minutes
       expect(minimumDisputeWindow).to.equal(180n); // 3 minutes
       expect(fixedBond).to.equal(ethers.parseEther("0.1"));
       expect(deciderFee).to.equal(ethers.parseEther("0.2"));

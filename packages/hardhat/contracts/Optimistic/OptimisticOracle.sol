@@ -32,7 +32,7 @@ contract OptimisticOracle {
         address winner;
         string description;
     }
-
+    uint256 public constant MINIMUM_ASSERTION_WINDOW = 3 minutes;
     uint256 public constant MINIMUM_DISPUTE_WINDOW = 3 minutes;
     uint256 public constant FIXED_BOND = 0.1 ether;
     uint256 public constant DECIDER_FEE = 0.2 ether;
@@ -91,11 +91,11 @@ contract OptimisticOracle {
             startTime = block.timestamp;
         }
         if (endTime == 0) {
-            endTime = startTime + MINIMUM_DISPUTE_WINDOW;
+            endTime = startTime + MINIMUM_ASSERTION_WINDOW;
         }
 
         if (startTime < block.timestamp) revert InvalidTime();
-        if (endTime < startTime + MINIMUM_DISPUTE_WINDOW) revert InvalidTime();
+        if (endTime < startTime + MINIMUM_ASSERTION_WINDOW) revert InvalidTime();
 
         assertions[assertionId] = EventAssertion({
             asserter: msg.sender,
