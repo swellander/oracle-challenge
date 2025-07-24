@@ -37,12 +37,10 @@ function getRandomPrice(basePrice: bigint): bigint {
   return basePrice + offset;
 }
 
-const runCycle = async (hre: HardhatRuntimeEnvironment) => {
+const runCycle = async (hre: HardhatRuntimeEnvironment, basePrice: bigint) => {
   try {
     const accounts = await hre.viem.getWalletClients();
     const simpleOracleFactory = await ethers.getContractFactory("SimpleOracle");
-
-    const basePrice = await fetchPriceFromUniswap();
     const publicClient = await hre.viem.getPublicClient();
 
     await publicClient.transport.request({ method: "evm_setAutomine", params: [false] });
@@ -81,8 +79,10 @@ const runCycle = async (hre: HardhatRuntimeEnvironment) => {
 
 async function run() {
   console.log("Starting whitelist oracle bots...");
+  const basePrice = await fetchPriceFromUniswap();
+
   while (true) {
-    await runCycle(hre);
+    await runCycle(hre, basePrice);
     await sleep(4000);
   }
 }
