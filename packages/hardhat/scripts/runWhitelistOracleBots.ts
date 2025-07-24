@@ -1,45 +1,9 @@
 import { ethers } from "hardhat";
 import { WhitelistOracle } from "../typechain-types";
 import hre from "hardhat";
-
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { fetchPriceFromUniswap } from "./fetchPriceFromUniswap";
-
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
-// Cleanup function to ensure automining is turned back on
-async function cleanup() {
-  const publicClient = await hre.viem.getPublicClient();
-  await publicClient.transport.request({ method: "evm_setAutomine", params: [true] });
-  console.log("\nCleaning up: turning automining back on...");
-}
-
-// Handle process termination signals
-process.on("SIGINT", async () => {
-  console.log("\nReceived SIGINT (Ctrl+C). Cleaning up...");
-  await cleanup();
-  process.exit(0);
-});
-
-process.on("SIGTERM", async () => {
-  console.log("\nReceived SIGTERM. Cleaning up...");
-  await cleanup();
-  process.exit(0);
-});
-
-// Handle uncaught exceptions
-process.on("uncaughtException", async error => {
-  console.error("Uncaught Exception:", error);
-  await cleanup();
-  process.exit(1);
-});
-
-// Handle unhandled promise rejections
-process.on("unhandledRejection", async (reason, promise) => {
-  console.error("Unhandled Rejection at:", promise, "reason:", reason);
-  await cleanup();
-  process.exit(1);
-});
+import { cleanup, sleep } from "./utils";
 
 async function getAllOracles() {
   const [deployer] = await ethers.getSigners();
@@ -107,8 +71,6 @@ const runCycle = async (hre: HardhatRuntimeEnvironment) => {
       });
     }
 
-    await sleep(10000);
-
     await publicClient.transport.request({ method: "evm_mine" });
     await publicClient.transport.request({ method: "evm_setAutomine", params: [true] });
   } catch (error) {
@@ -128,4 +90,31 @@ async function run() {
 run().catch(error => {
   console.error(error);
   process.exitCode = 1;
+});
+
+// Handle process termination signals
+process.on("SIGINT", async () => {
+  console.log("\nReceived SIGINT (Ctrl+C). Cleaning up...");
+  await cleanup();
+  process.exit(0);
+});
+
+process.on("SIGTERM", async () => {
+  console.log("\nReceived SIGTERM. Cleaning up...");
+  await cleanup();
+  process.exit(0);
+});
+
+// Handle uncaught exceptions
+process.on("uncaughtException", async error => {
+  console.error("Uncaught Exception:", error);
+  await cleanup();
+  process.exit(1);
+});
+
+// Handle unhandled promise rejections
+process.on("unhandledRejection", async (reason, promise) => {
+  console.error("Unhandled Rejection at:", promise, "reason:", reason);
+  await cleanup();
+  process.exit(1);
 });
