@@ -6,7 +6,7 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 
 const externalContracts = {
   "31337": {
-    ORC: {
+    ORA: {
       address: "0x32467b43BFa67273FC7dDda0999Ee9A12F2AaA08",
       abi: [
         {

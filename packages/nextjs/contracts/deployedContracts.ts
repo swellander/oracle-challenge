@@ -1016,7 +1016,7 @@ const deployedContracts = {
           name: "oracleToken",
           outputs: [
             {
-              internalType: "contract ORC",
+              internalType: "contract ORA",
               name: "",
               type: "address",
             },

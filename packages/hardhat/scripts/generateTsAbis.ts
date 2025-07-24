@@ -122,8 +122,8 @@ const generateTsAbis: DeployFunction = async function () {
     ),
   );
 
-  // --- NEW: Generate externalContracts.ts for ORC token ---
-  // For each chain, get the StakingOracle deployment, call oracleToken, and write ORC data
+  // --- NEW: Generate externalContracts.ts for ORA token ---
+  // For each chain, get the StakingOracle deployment, call oracleToken, and write ORA data
   const externalContracts: Record<string, any> = {};
   for (const chainName of getDirectories(DEPLOYMENTS_DIR)) {
     const chainId = fs.readFileSync(`${DEPLOYMENTS_DIR}/${chainName}/.chainId`).toString();
@@ -132,18 +132,18 @@ const generateTsAbis: DeployFunction = async function () {
     const stakingOracleDeployment = JSON.parse(fs.readFileSync(stakingOraclePath).toString());
     const provider = new ethers.JsonRpcProvider("http://localhost:8545"); // or use config
     const stakingOracle = new ethers.Contract(stakingOracleDeployment.address, stakingOracleDeployment.abi, provider);
-    let orcAddress;
+    let oraAddress;
     try {
-      orcAddress = await stakingOracle.oracleToken();
+      oraAddress = await stakingOracle.oracleToken();
     } catch (e) {
-      console.error(`Failed to fetch ORC address for chain ${chainId}`, e);
+      console.error(`Failed to fetch ORA address for chain ${chainId}`, e);
       continue;
     }
-    const orcArtifact = JSON.parse(fs.readFileSync(`${ARTIFACTS_DIR}/contracts/OracleToken.sol/ORC.json`).toString());
+    const oraArtifact = JSON.parse(fs.readFileSync(`${ARTIFACTS_DIR}/contracts/OracleToken.sol/ORA.json`).toString());
     if (!externalContracts[chainId]) externalContracts[chainId] = {};
-    externalContracts[chainId]["ORC"] = {
-      address: orcAddress,
-      abi: orcArtifact.abi,
+    externalContracts[chainId]["ORA"] = {
+      address: oraAddress,
+      abi: oraArtifact.abi,
     };
   }
   fs.writeFileSync(

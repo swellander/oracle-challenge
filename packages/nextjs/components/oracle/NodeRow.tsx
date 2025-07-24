@@ -14,8 +14,8 @@ export const NodeRow = ({ address }: NodeRowProps) => {
     args: [address],
   });
 
-  const { data: orcBalance } = useScaffoldReadContract({
-    contractName: "ORC",
+  const { data: oraBalance } = useScaffoldReadContract({
+    contractName: "ORA",
     functionName: "balanceOf",
     args: [address],
   });
@@ -44,7 +44,7 @@ export const NodeRow = ({ address }: NodeRowProps) => {
   const stakedAmountFormatted = stakedAmount !== undefined ? Number(formatEther(stakedAmount)) : "Loading...";
   const lastReportedPriceFormatted =
     lastReportedPrice !== undefined ? Number(parseFloat(formatEther(lastReportedPrice)).toFixed(2)) : "Not reported";
-  const orcBalanceFormatted = orcBalance !== undefined ? Number(formatEther(orcBalance)) : "Loading...";
+  const oraBalanceFormatted = oraBalance !== undefined ? Number(formatEther(oraBalance)) : "Loading...";
 
   // Check if staked amount is below minimum requirement
   const isInsufficientStake = stakedAmount !== undefined && minimumStake !== undefined && stakedAmount < minimumStake;
@@ -63,8 +63,8 @@ export const NodeRow = ({ address }: NodeRowProps) => {
       >
         {lastReportedPriceFormatted}
       </HighlightedCell>
-      <HighlightedCell value={orcBalanceFormatted} highlightColor="bg-success">
-        {orcBalanceFormatted}
+      <HighlightedCell value={oraBalanceFormatted} highlightColor="bg-success">
+        {oraBalanceFormatted}
       </HighlightedCell>
       <ConfigSlider nodeAddress={address.toLowerCase()} endpoint="skip-probability" label="skip rate" />
       <ConfigSlider nodeAddress={address.toLowerCase()} endpoint="price-variance" label="variance" />

@@ -10,11 +10,11 @@ export interface WhitelistRowProps extends NodeRowProps {
 export interface NodeInfo {
   stakedAmount: bigint | undefined;
   lastReportedPrice: bigint | undefined;
-  orcBalance: bigint | undefined;
+  oraBalance: bigint | undefined;
 }
 
 export interface HighlightState {
   staked: boolean;
   price: boolean;
-  orcBalance: boolean;
+  oraBalance: boolean;
 }

@@ -4,7 +4,7 @@ import { time } from "@nomicfoundation/hardhat-network-helpers";
 
 describe("StakingOracle", function () {
   let oracle: any;
-  let orcToken: any;
+  let oraToken: any;
   let node1: any;
   let node2: any;
   let node3: any;
@@ -19,12 +19,12 @@ describe("StakingOracle", function () {
     const StakingOracleFactory = await ethers.getContractFactory("StakingOracle");
     oracle = await StakingOracleFactory.deploy();
 
-    const orcTokenAddress = await oracle.oracleToken();
-    orcToken = await ethers.getContractAt("ORC", orcTokenAddress);
+    const oraTokenAddress = await oracle.oracleToken();
+    oraToken = await ethers.getContractAt("ORA", oraTokenAddress);
   });
 
   describe("constructor", function () {
-    it("Should deploy an ORC token and set initial state", async function () {
+    it("Should deploy an ORA token and set initial state", async function () {
       const StakingOracleFactory = await ethers.getContractFactory("StakingOracle");
       const newly_deployed_oracle = await StakingOracleFactory.deploy();
       const tokenAddress = await newly_deployed_oracle.oracleToken();
@@ -135,7 +135,7 @@ describe("StakingOracle", function () {
       await oracle.connect(node3).reportPrice(1550);
     });
 
-    it("Should reward fresh nodes with ORC tokens", async function () {
+    it("Should reward fresh nodes with ORA tokens", async function () {
       await oracle.connect(node1).reportPrice(1475);
       await oracle.connect(node2).reportPrice(1500);
       await oracle.connect(node3).reportPrice(1525);
@@ -143,9 +143,9 @@ describe("StakingOracle", function () {
       await oracle.validateNodes();
 
       const expectedReward = ethers.parseUnits("10", 18);
-      const node1Balance = await orcToken.balanceOf(node1.address);
-      const node2Balance = await orcToken.balanceOf(node2.address);
-      const node3Balance = await orcToken.balanceOf(node3.address);
+      const node1Balance = await oraToken.balanceOf(node1.address);
+      const node2Balance = await oraToken.balanceOf(node2.address);
+      const node3Balance = await oraToken.balanceOf(node3.address);
 
       expect(node1Balance).to.equal(expectedReward);
       expect(node2Balance).to.equal(expectedReward);
