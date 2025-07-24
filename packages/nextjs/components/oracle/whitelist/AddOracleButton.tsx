@@ -1,11 +1,10 @@
 import { parseEther } from "viem";
 import { usePublicClient, useWalletClient } from "wagmi";
 import { PlusIcon } from "@heroicons/react/24/outline";
-import deployedContracts from "~~/contracts/deployedContracts";
 import { useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 import { useGlobalState } from "~~/services/store/store";
-import { INITIAL_ETH_PRICE, SIMPLE_ORACLE_BYTECODE } from "~~/utils/constants";
-import { getParsedError, notification } from "~~/utils/scaffold-eth";
+import { INITIAL_ETH_PRICE, SIMPLE_ORACLE_ABI, SIMPLE_ORACLE_BYTECODE } from "~~/utils/constants";
+import { notification } from "~~/utils/scaffold-eth";
 
 export const AddOracleButton = () => {
   const { data: walletClient } = useWalletClient();
@@ -22,12 +21,8 @@ export const AddOracleButton = () => {
 
     try {
       // Step 1: Deploy new SimpleOracle instance
-
-      // Get SimpleOracle ABI from deployed contracts
-      const simpleOracleAbi = deployedContracts[31337].SimpleOracle_1.abi; // TODO: fix this. Maybe put it in a separate file as a constant.
-
       const deployTxHash = await walletClient.deployContract({
-        abi: simpleOracleAbi,
+        abi: SIMPLE_ORACLE_ABI,
         bytecode: SIMPLE_ORACLE_BYTECODE,
         args: [],
       });
@@ -55,7 +50,7 @@ export const AddOracleButton = () => {
 
       const setPriceTxHash = await walletClient.writeContract({
         address: oracleAddress,
-        abi: simpleOracleAbi,
+        abi: SIMPLE_ORACLE_ABI,
         functionName: "setPrice",
         args: [priceInWei],
       });
@@ -65,12 +60,11 @@ export const AddOracleButton = () => {
       });
     } catch (error: any) {
       console.log("Error adding oracle:", error);
-      notification.error(`Failed to add oracle: ${getParsedError(error)}`);
     }
   };
 
   return (
-    <button className="btn btn-primary btn-sm font-normal gap-1" onClick={handleAddOracle}>
+    <button className="btn btn-primary h-full btn-sm font-normal gap-1" onClick={handleAddOracle}>
       <PlusIcon className="h-4 w-4" />
       <span>Add Oracle Node</span>
     </button>

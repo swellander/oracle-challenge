@@ -1,6 +1,10 @@
 export interface NodeRowProps {
   address: string;
-  index?: number;
+  index: number;
+}
+
+export interface WhitelistRowProps extends NodeRowProps {
+  isActive: boolean;
 }
 
 export interface NodeInfo {

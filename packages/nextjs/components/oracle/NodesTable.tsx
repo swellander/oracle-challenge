@@ -66,7 +66,9 @@ export const NodesTable = () => {
               ) : nodeAddresses?.length === 0 ? (
                 <NoNodesRow />
               ) : (
-                nodeAddresses?.map((address: string, index: number) => <NodeRow key={index} address={address} />)
+                nodeAddresses?.map((address: string, index: number) => (
+                  <NodeRow key={index} index={index} address={address} />
+                ))
               )}
             </tbody>
           </table>

@@ -5,16 +5,7 @@ import { formatEther } from "viem";
 import { HighlightedCell } from "~~/components/oracle/HighlightedCell";
 import { Address } from "~~/components/scaffold-eth";
 import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
-
-const getHighlightColorForPrice = (currentPrice: bigint | undefined, medianPrice: bigint | undefined) => {
-  if (currentPrice === undefined || medianPrice === undefined) return "";
-  const medianPriceNum = Number(medianPrice);
-  if (medianPriceNum === 0) return "";
-  const percentageChange = Math.abs((Number(currentPrice) - medianPriceNum) / medianPriceNum) * 100;
-  if (percentageChange < 5) return "bg-success";
-  else if (percentageChange < 10) return "bg-warning";
-  else return "bg-error";
-};
+import { getHighlightColorForPrice } from "~~/utils/scaffold-eth/common";
 
 export const NodeRow = ({ address }: NodeRowProps) => {
   const { data = [] } = useScaffoldReadContract({
@@ -52,16 +43,14 @@ export const NodeRow = ({ address }: NodeRowProps) => {
 
   const stakedAmountFormatted = stakedAmount !== undefined ? Number(formatEther(stakedAmount)) : "Loading...";
   const lastReportedPriceFormatted =
-    lastReportedPrice !== undefined
-      ? Number(parseFloat(formatEther(lastReportedPrice)).toFixed(2))
-      : "No price reported";
+    lastReportedPrice !== undefined ? Number(parseFloat(formatEther(lastReportedPrice)).toFixed(2)) : "Not reported";
   const orcBalanceFormatted = orcBalance !== undefined ? Number(formatEther(orcBalance)) : "Loading...";
 
   // Check if staked amount is below minimum requirement
   const isInsufficientStake = stakedAmount !== undefined && minimumStake !== undefined && stakedAmount < minimumStake;
 
   return (
-    <tr className={isInsufficientStake ? "bg-gray-300 opacity-50" : ""}>
+    <tr className={isInsufficientStake ? "opacity-40" : ""}>
       <td>
         <Address address={address} size="sm" format="short" onlyEnsOrAddress={true} />
       </td>
