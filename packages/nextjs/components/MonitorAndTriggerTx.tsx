@@ -1,15 +1,16 @@
 import { useEffect, useRef } from "react";
 import { parseEther } from "viem";
 import { hardhat } from "viem/chains";
-import { usePublicClient, useWalletClient } from "wagmi";
+import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 import { useTargetNetwork } from "~~/hooks/scaffold-eth";
 
 export const MonitorAndTriggerTx = () => {
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
-
   const { targetNetwork } = useTargetNetwork();
   const isLocalNetwork = targetNetwork.id === hardhat.id;
+  const { connector } = useAccount();
+  const isBurnerWallet = connector?.id === "burnerWallet";
 
   const prevTimestampRef = useRef<bigint | null>(null);
   const currentTimestampRef = useRef<bigint | null>(null);
@@ -17,6 +18,7 @@ export const MonitorAndTriggerTx = () => {
   useEffect(() => {
     if (!publicClient || !walletClient) return;
     if (!isLocalNetwork) return;
+    if (!isBurnerWallet) return;
 
     const pollBlock = async () => {
       try {
@@ -45,11 +47,11 @@ export const MonitorAndTriggerTx = () => {
       }
     };
 
-    const interval = setInterval(pollBlock, 5000);
+    const interval = setInterval(pollBlock, 3000);
     pollBlock(); // Initial call
 
     return () => clearInterval(interval);
-  }, [publicClient, walletClient, isLocalNetwork]);
+  }, [publicClient, walletClient, isLocalNetwork, isBurnerWallet]);
 
   return null;
 };
