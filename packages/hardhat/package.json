@@ -8,6 +8,7 @@
     "console": "hardhat console",
     "simpleBots": "hardhat run scripts/runWhitelistOracleBots.ts",
     "simulate": "hardhat run scripts/runOracleBots.ts",
+    "simulate:whitelist": "hardhat run scripts/runWhitelistOracleBots.ts",
     "chain": "hardhat node --network hardhat --no-deploy",
     "check-types": "tsc --noEmit --incremental",
     "clean": "hardhat clean",
