@@ -25,13 +25,13 @@ const deployStakingOracle: DeployFunction = async function (hre: HardhatRuntimeE
 
   const publicClient = await viem.getPublicClient();
 
-  const orcTokenAddress = await publicClient.readContract({
+  const oraTokenAddress = await publicClient.readContract({
     address: stakingOracleAddress,
     abi: deployment.abi,
     functionName: "oracleToken",
     args: [],
   });
-  console.log("ORC Token deployed at:", orcTokenAddress);
+  console.log("ORA Token deployed at:", oraTokenAddress);
   const initialPrice = await fetchPriceFromUniswap();
 
   await Promise.all(

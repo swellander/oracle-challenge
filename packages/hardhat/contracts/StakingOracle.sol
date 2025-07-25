@@ -5,7 +5,7 @@ import { Arrays } from "@openzeppelin/contracts/utils/Arrays.sol";
 import "./OracleToken.sol";
 
 contract StakingOracle {
-    ORC public oracleToken;
+    ORA public oracleToken;
 
     struct OracleNode {
         address nodeAddress;
@@ -31,7 +31,7 @@ contract StakingOracle {
     address public oracleTokenAddress;
 
     constructor() {
-        oracleToken = new ORC();
+        oracleToken = new ORA();
     }
 
     /* ========== Oracle Node Operation Functions ========== */
