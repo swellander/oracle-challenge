@@ -37,6 +37,7 @@ contract StakingOracle {
     /* ========== Oracle Node Operation Functions ========== */
     function registerNode() public payable {
         require(msg.value >= MINIMUM_STAKE, "Insufficient stake");
+        require(nodes[msg.sender].nodeAddress == address(0), "Node already registered");
 
         nodes[msg.sender] = OracleNode({
             nodeAddress: msg.sender,
