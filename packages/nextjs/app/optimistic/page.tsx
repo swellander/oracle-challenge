@@ -1,20 +1,73 @@
 "use client";
 
 import type { NextPage } from "next";
+import { useReadContracts } from "wagmi";
 import { AssertedTable } from "~~/components/oracle/optimistic/AssertedTable";
 import { ProposedTable } from "~~/components/oracle/optimistic/ProposedTable";
 import { SubmitAssertionButton } from "~~/components/oracle/optimistic/SubmitAssertionButton";
+import { useDeployedContractInfo, useScaffoldReadContract } from "~~/hooks/scaffold-eth";
 
 const Home: NextPage = () => {
+  const { data: nextAssertionId } = useScaffoldReadContract({
+    contractName: "OptimisticOracle",
+    functionName: "nextAssertionId",
+  });
+
+  // get deployed contract address
+  const { data: deployedContractAddress } = useDeployedContractInfo({
+    contractName: "OptimisticOracle",
+  });
+
+  // Create contracts array to get state for all assertions from 1 to nextAssertionId-1
+  const assertionContracts = nextAssertionId
+    ? Array.from({ length: Number(nextAssertionId) - 1 }, (_, i) => ({
+        address: deployedContractAddress?.address as `0x${string}`,
+        abi: deployedContractAddress?.abi,
+        functionName: "getState",
+        args: [BigInt(i + 1)],
+      })).filter(contract => contract.address && contract.abi)
+    : [];
+
+  const { data: assertionStates } = useReadContracts({
+    contracts: assertionContracts,
+  });
+
+  // Map assertion IDs to their states and filter out expired ones (state 5)
+  const assertionStateMap =
+    nextAssertionId && assertionStates
+      ? Array.from({ length: Number(nextAssertionId) - 1 }, (_, i) => ({
+          assertionId: i + 1,
+          state: (assertionStates[i]?.result as number) || 0, // Default to 0 (Invalid) if no result
+        })).filter(assertion => assertion.state !== 5)
+      : []; // Filter out Expired (state 5)
+
+  console.log("Assertion State Map (filtered):", assertionStateMap);
+
+  // Also get the assertion data for each ID
+  // const assertionDataContracts = nextAssertionId ?
+  //   Array.from({ length: Number(nextAssertionId) - 1 }, (_, i) => ({
+  //     address: deployedContractAddress?.address as `0x${string}`,
+  //     abi: deployedContractAddress?.abi,
+  //     functionName: "assertions",
+  //     args: [BigInt(i + 1)],
+  //   })).filter(contract => contract.address && contract.abi) : [];
+
+  // const { data: assertionData } = useReadContracts({
+  //   contracts: assertionDataContracts,
+  // });
+
+  // Log the results for debugging
+  // console.log("Assertion States:", assertionStates);
+  // console.log("Assertion Data:", assertionData);
+
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Submit Assertion Button with Modal */}
       <SubmitAssertionButton />
 
       {/* Tables */}
-      {/* Give a header to the tables */}
       <h2 className="text-2xl font-bold my-4">Asserted</h2>
-      <AssertedTable />
+      <AssertedTable assertions={assertionStateMap.filter(assertion => assertion.state === 1)} />
       <h2 className="text-2xl font-bold mt-12 mb-4">Proposed</h2>
       <ProposedTable />
     </div>

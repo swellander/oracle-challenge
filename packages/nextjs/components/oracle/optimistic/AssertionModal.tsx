@@ -1,20 +1,31 @@
 "use client";
 
-interface ProposedChallenge {
-  id: string;
-  description: string;
-  bond: number;
-  reward: number;
-}
+import { useState } from "react";
+import { AssertionModalProps } from "../types";
+import { formatEther } from "viem";
+import { useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 
-interface ChallengeModalProps {
-  challenge: ProposedChallenge | null;
-  isOpen: boolean;
-  onClose: () => void;
-}
+export const AssertionModal = ({ assertion, isOpen, onClose }: AssertionModalProps) => {
+  const [isProposing, setIsProposing] = useState(false);
 
-export const ChallengeModal = ({ challenge, isOpen, onClose }: ChallengeModalProps) => {
-  if (!challenge) return null;
+  const { writeContractAsync } = useScaffoldWriteContract({
+    contractName: "OptimisticOracle",
+  });
+
+  const handleProposeOutcome = async (outcome: boolean) => {
+    try {
+      setIsProposing(true);
+      await writeContractAsync({
+        functionName: "proposeOutcome",
+        args: [BigInt(assertion.assertionId), outcome],
+        value: assertion.bond,
+      });
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsProposing(false);
+    }
+  };
 
   return (
     <>
@@ -47,15 +58,23 @@ export const ChallengeModal = ({ challenge, isOpen, onClose }: ChallengeModalPro
               {/* Left Column - Description Area */}
               <div className="bg-base-200 rounded-lg p-4">
                 <p className="text-base-content">
-                  <span className="font-bold">Description:</span> {challenge.description}
+                  <span className="font-bold">Description:</span> {assertion.description}
                 </p>
 
                 <p className="text-base-content">
-                  <span className="font-bold">Bond:</span> {challenge.bond} ETH
+                  <span className="font-bold">Bond:</span> {formatEther(assertion.bond)} ETH
                 </p>
 
                 <p className="text-base-content">
-                  <span className="font-bold">Reward:</span> {challenge.reward} ETH
+                  <span className="font-bold">Reward:</span> {formatEther(assertion.reward)} ETH
+                </p>
+
+                <p className="text-base-content">
+                  <span className="font-bold">Start Time:</span> {assertion.startTime}
+                </p>
+
+                <p className="text-base-content">
+                  <span className="font-bold">Duration:</span> {assertion.endTime - assertion.startTime} seconds
                 </p>
               </div>
 
@@ -66,9 +85,23 @@ export const ChallengeModal = ({ challenge, isOpen, onClose }: ChallengeModalPro
                   <div className="flex items-center gap-2 mb-3">
                     <span className="font-medium">Propose Answer</span>
                   </div>
+                  {isProposing && <span className="loading loading-spinner loading-xs"></span>}
+
                   <div className="flex justify-center gap-4">
-                    <button className="btn btn-primary flex-1">True</button>
-                    <button className="btn btn-primary flex-1">False</button>
+                    <button
+                      className="btn btn-primary flex-1"
+                      onClick={() => handleProposeOutcome(true)}
+                      disabled={isProposing}
+                    >
+                      True
+                    </button>
+                    <button
+                      className="btn btn-primary flex-1"
+                      onClick={() => handleProposeOutcome(false)}
+                      disabled={isProposing}
+                    >
+                      False
+                    </button>
                   </div>
                 </div>
               </div>
