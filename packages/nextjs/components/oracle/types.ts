@@ -43,3 +43,15 @@ export interface AssertionModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
+
+export interface OOTableProps {
+  assertions: {
+    assertionId: number;
+    state: number;
+  }[];
+}
+
+export interface OORowProps {
+  assertionId: number;
+  handleRowClick: (assertion: AssertionWithId) => void;
+}

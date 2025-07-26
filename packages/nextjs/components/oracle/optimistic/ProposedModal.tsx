@@ -3,27 +3,28 @@
 import { useState } from "react";
 import { AssertionModalProps } from "../types";
 import { formatEther } from "viem";
+import { Address } from "~~/components/scaffold-eth";
 import { useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 
-export const AssertionModal = ({ assertion, isOpen, onClose }: AssertionModalProps) => {
-  const [isProposing, setIsProposing] = useState(false);
+export const ProposedModal = ({ assertion, isOpen, onClose }: AssertionModalProps) => {
+  const [isDisputing, setIsDisputing] = useState(false);
 
   const { writeContractAsync } = useScaffoldWriteContract({
     contractName: "OptimisticOracle",
   });
 
-  const handleProposeOutcome = async (outcome: boolean) => {
+  const handleDisputeOutcome = async () => {
     try {
-      setIsProposing(true);
+      setIsDisputing(true);
       await writeContractAsync({
-        functionName: "proposeOutcome",
-        args: [BigInt(assertion.assertionId), outcome],
+        functionName: "disputeOutcome",
+        args: [BigInt(assertion.assertionId)],
         value: assertion.bond,
       });
     } catch (error) {
       console.log(error);
     } finally {
-      setIsProposing(false);
+      setIsDisputing(false);
     }
   };
 
@@ -49,7 +50,7 @@ export const AssertionModal = ({ assertion, isOpen, onClose }: AssertionModalPro
             {/* Header with Current State */}
             <div className="text-center mb-6">
               <h2 className="text-lg">
-                Current State: <span className="font-bold">Asserted</span>
+                Current State: <span className="font-bold">Proposed</span>
               </h2>
             </div>
 
@@ -82,25 +83,27 @@ export const AssertionModal = ({ assertion, isOpen, onClose }: AssertionModalPro
               <div className="space-y-4 text-center flex flex-col justify-center h-full">
                 {/* Proposed Answer Section */}
                 <div className="bg-base-200 rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="font-medium">Propose Answer</span>
+                  <div className="flex flex-col gap-2">
+                    <span className="font-bold">Proposed By:</span>
+                    <div className="flex justify-center w-full">
+                      <Address address={assertion.proposer} format="short" onlyEnsOrAddress disableAddressLink />
+                    </div>
                   </div>
-                  {isProposing && <span className="loading loading-spinner loading-xs"></span>}
+                  <p className="text-base-content">
+                    <span className="font-bold">Proposed Outcome:</span> {assertion.proposedOutcome ? "True" : "False"}
+                  </p>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="font-medium">Submit Dispute</span>
+                  </div>
+                  {isDisputing && <span className="loading loading-spinner loading-xs"></span>}
 
                   <div className="flex justify-center gap-4">
                     <button
                       className="btn btn-primary flex-1"
-                      onClick={() => handleProposeOutcome(true)}
-                      disabled={isProposing}
+                      onClick={() => handleDisputeOutcome()}
+                      disabled={isDisputing}
                     >
-                      True
-                    </button>
-                    <button
-                      className="btn btn-primary flex-1"
-                      onClick={() => handleProposeOutcome(false)}
-                      disabled={isProposing}
-                    >
-                      False
+                      {!assertion.proposedOutcome ? "True" : "False"}
                     </button>
                   </div>
                 </div>

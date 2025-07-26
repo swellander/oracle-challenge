@@ -1,29 +1,9 @@
 "use client";
 
-interface OracleChallenge {
-  id: string;
-  description: string;
-  category: string;
-  proposal: string | number | boolean;
-  bond: number;
-  challengeStatus: "active" | "ended" | "disputed";
-  timeLeft?: string;
-}
-
-interface ChallengeCardProps {
-  challenge: OracleChallenge;
-  isLast?: boolean;
-}
-
-const ProposalDisplay = ({ proposal }: { proposal: string | number | boolean }) => {
-  if (typeof proposal === "boolean") {
-    return <span className="font-medium">{proposal.toString()}</span>;
-  }
-  if (typeof proposal === "number") {
-    return <span className="font-medium">{proposal}</span>;
-  }
-  return <span className="font-medium">{proposal}</span>;
-};
+import { OORowProps } from "../types";
+import { formatEther } from "viem";
+import { ChevronRightIcon } from "@heroicons/react/24/outline";
+import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
 
 const StatusBadge = ({ status, timeLeft }: { status: "active" | "ended" | "disputed"; timeLeft?: string }) => {
   if (status === "active" && timeLeft) {
@@ -51,45 +31,51 @@ const StatusBadge = ({ status, timeLeft }: { status: "active" | "ended" | "dispu
   return null;
 };
 
-const BondDisplay = ({ bond }: { bond: number }) => {
-  return (
-    <div className="flex items-center gap-2">
-      <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-        <span className="text-xs text-primary-content font-bold">🪙</span>
-      </div>
-      <span className="font-medium">{bond}</span>
-    </div>
-  );
-};
+export const ProposedCard = ({ assertionId, handleRowClick }: OORowProps) => {
+  const { data: assertionData } = useScaffoldReadContract({
+    contractName: "OptimisticOracle",
+    functionName: "getAssertion",
+    args: [BigInt(assertionId)],
+  });
 
-export const ProposedCard = ({ challenge, isLast = false }: ChallengeCardProps) => {
+  if (!assertionData) return null;
+
   return (
-    <div
-      className={`grid grid-cols-4 gap-4 px-6 py-4 border-b border-base-300 hover:bg-base-50 transition-colors ${isLast ? "border-b-0" : ""}`}
+    <tr
+      key={assertionId}
+      className={`group border-b border-base-300 cursor-pointer`}
+      onClick={() => handleRowClick({ ...assertionData, assertionId })}
     >
-      {/* Description Column */}
-      <div className="flex items-center">
-        <div>
-          <div className="font-medium text-base-content mb-1">{challenge.description}</div>
+      {/* Query Column */}
+      <td className="px-6 py-4">
+        <div className="flex items-center gap-3">
+          <div className="group-hover:text-error font-medium text-base-content mb-1 truncate">
+            {assertionData?.description}
+          </div>
         </div>
-      </div>
+      </td>
 
       {/* Proposal Column */}
-      <div className="flex items-center">
-        <ProposalDisplay proposal={challenge.proposal} />
-      </div>
+      <td className="px-6 py-4">
+        <span className="font-medium">{assertionData?.proposedOutcome.toString()}</span>
+      </td>
 
       {/* Bond Column */}
-      <div className="flex items-center">
-        <BondDisplay bond={challenge.bond} />
-      </div>
+      <td className="px-6 py-4">
+        <span className="font-medium">{formatEther(assertionData?.bond)} ETH</span>
+      </td>
 
       {/* Challenge Period Column */}
-      <div className="flex items-center justify-end">
-        <StatusBadge status={challenge.challengeStatus} timeLeft={challenge.timeLeft} />
-      </div>
-    </div>
+      <td className="px-6 py-4 text-right">
+        {/* <StatusBadge status={assertionData?.state} timeLeft={assertionData?.timeLeft} /> */}
+      </td>
+
+      {/* Chevron Column */}
+      <td className="">
+        <div className="w-6 h-6 rounded-full border-error border flex items-center justify-center hover:bg-base-200 group-hover:bg-error transition-colors mx-auto">
+          <ChevronRightIcon className="w-4 h-4 text-error group-hover:text-white stroke-2 transition-colors" />
+        </div>
+      </td>
+    </tr>
   );
 };
-
-export type { OracleChallenge };

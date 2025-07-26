@@ -1,18 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { AssertionWithId } from "../types";
+import { AssertionWithId, OOTableProps } from "../types";
 import { AssertedCard } from "./AssertedCard";
 import { AssertionModal } from "./AssertionModal";
 
-interface AssertedTableProps {
-  assertions: {
-    assertionId: number;
-    state: number;
-  }[];
-}
-
-export const AssertedTable = ({ assertions }: AssertedTableProps) => {
+export const AssertedTable = ({ assertions }: OOTableProps) => {
   const [selectedAssertion, setSelectedAssertion] = useState<AssertionWithId | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 

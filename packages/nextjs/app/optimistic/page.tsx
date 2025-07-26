@@ -69,7 +69,7 @@ const Home: NextPage = () => {
       <h2 className="text-2xl font-bold my-4">Asserted</h2>
       <AssertedTable assertions={assertionStateMap.filter(assertion => assertion.state === 1)} />
       <h2 className="text-2xl font-bold mt-12 mb-4">Proposed</h2>
-      <ProposedTable />
+      <ProposedTable assertions={assertionStateMap.filter(assertion => assertion.state === 2)} />
     </div>
   );
 };
