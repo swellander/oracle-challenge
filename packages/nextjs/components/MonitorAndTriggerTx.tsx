@@ -3,6 +3,7 @@ import { parseEther } from "viem";
 import { hardhat } from "viem/chains";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 import { useTargetNetwork } from "~~/hooks/scaffold-eth";
+import { useGlobalState } from "~~/services/store/store";
 
 export const MonitorAndTriggerTx = () => {
   const publicClient = usePublicClient();
@@ -14,6 +15,8 @@ export const MonitorAndTriggerTx = () => {
 
   const prevTimestampRef = useRef<bigint | null>(null);
   const currentTimestampRef = useRef<bigint | null>(null);
+
+  const { setTimestamp } = useGlobalState();
 
   useEffect(() => {
     if (!publicClient || !walletClient) return;
@@ -42,6 +45,9 @@ export const MonitorAndTriggerTx = () => {
         // Update refs
         prevTimestampRef.current = current;
         currentTimestampRef.current = newTimestamp;
+
+        // Also update current timestamp in Zustand store for global access
+        setTimestamp(newTimestamp);
       } catch (err) {
         console.log("Polling error");
       }
@@ -51,7 +57,7 @@ export const MonitorAndTriggerTx = () => {
     pollBlock(); // Initial call
 
     return () => clearInterval(interval);
-  }, [publicClient, walletClient, isLocalNetwork, isBurnerWallet]);
+  }, [publicClient, walletClient, isLocalNetwork, isBurnerWallet, setTimestamp]);
 
   return null;
 };

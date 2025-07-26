@@ -20,6 +20,9 @@ type GlobalState = {
   setIsNativeCurrencyFetching: (newIsNativeCurrencyFetching: boolean) => void;
   targetNetwork: ChainWithAttributes;
   setTargetNetwork: (newTargetNetwork: ChainWithAttributes) => void;
+  // Block timestamp tracking
+  timestamp: bigint | null;
+  setTimestamp: (timestamp: bigint | null) => void;
 };
 
 export const useGlobalState = create<GlobalState>(set => ({
@@ -33,4 +36,7 @@ export const useGlobalState = create<GlobalState>(set => ({
     set(state => ({ nativeCurrency: { ...state.nativeCurrency, isFetching: newValue } })),
   targetNetwork: scaffoldConfig.targetNetworks[0],
   setTargetNetwork: (newTargetNetwork: ChainWithAttributes) => set(() => ({ targetNetwork: newTargetNetwork })),
+  // Block timestamp tracking
+  timestamp: null,
+  setTimestamp: (timestamp: bigint | null): void => set(() => ({ timestamp })),
 }));
