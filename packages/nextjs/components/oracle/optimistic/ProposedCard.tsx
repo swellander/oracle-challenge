@@ -1,35 +1,10 @@
 "use client";
 
 import { OORowProps } from "../types";
+import { TimeLeft } from "./TimeLeft";
 import { formatEther } from "viem";
 import { ChevronRightIcon } from "@heroicons/react/24/outline";
 import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
-
-const StatusBadge = ({ status, timeLeft }: { status: "active" | "ended" | "disputed"; timeLeft?: string }) => {
-  if (status === "active" && timeLeft) {
-    return (
-      <div className="flex flex-col items-end">
-        <span className="text-sm font-medium text-base-content">{timeLeft}</span>
-        <div className="w-24 h-1 bg-error rounded-full mt-1"></div>
-      </div>
-    );
-  }
-
-  if (status === "ended") {
-    return (
-      <div className="flex flex-col items-end">
-        <span className="text-sm font-medium text-error">Ended</span>
-        <div className="w-24 h-1 bg-error rounded-full mt-1"></div>
-      </div>
-    );
-  }
-
-  if (status === "disputed") {
-    return <span className="text-sm font-medium text-warning">Disputed</span>;
-  }
-
-  return null;
-};
 
 export const ProposedCard = ({ assertionId, handleRowClick }: OORowProps) => {
   const { data: assertionData } = useScaffoldReadContract({
@@ -66,8 +41,8 @@ export const ProposedCard = ({ assertionId, handleRowClick }: OORowProps) => {
       </td>
 
       {/* Challenge Period Column */}
-      <td className="px-6 py-4 text-right">
-        {/* <StatusBadge status={assertionData?.state} timeLeft={assertionData?.timeLeft} /> */}
+      <td className="px-6 py-4">
+        <TimeLeft startTime={assertionData?.startTime} endTime={assertionData?.endTime} />
       </td>
 
       {/* Chevron Column */}

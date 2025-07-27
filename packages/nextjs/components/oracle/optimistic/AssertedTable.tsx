@@ -25,9 +25,10 @@ export const AssertedTable = ({ assertions }: OOTableProps) => {
         {/* Header */}
         <thead>
           <tr className="bg-base-300">
-            <th className="px-6 py-4 text-left font-semibold text-base-content w-6/12">Description</th>
-            <th className="px-6 py-4 text-left font-semibold text-base-content w-3/12">Bond</th>
+            <th className="px-6 py-4 text-left font-semibold text-base-content w-5/12">Description</th>
+            <th className="px-6 py-4 text-left font-semibold text-base-content w-2/12">Bond</th>
             <th className="px-6 py-4 text-left font-semibold text-base-content w-2/12">Reward</th>
+            <th className="px-6 py-4 text-left font-semibold text-base-content w-2/12">Time Left</th>
             <th className="px-6 py-4 text-left font-semibold text-base-content w-1/12">{/* Icon column */}</th>
           </tr>
         </thead>

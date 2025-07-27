@@ -1,4 +1,5 @@
 import { AssertionWithId } from "../types";
+import { TimeLeft } from "./TimeLeft";
 import { formatEther } from "viem";
 import { ChevronRightIcon } from "@heroicons/react/24/outline";
 import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
@@ -41,6 +42,11 @@ export const AssertedCard = ({
       {/* Reward Column */}
       <td className="px-6 py-4">
         <span className="font-medium">{formatEther(assertionData.reward)} ETH</span>
+      </td>
+
+      {/* Time Left Column */}
+      <td className="px-6 py-4">
+        <TimeLeft startTime={assertionData.startTime} endTime={assertionData.endTime} />
       </td>
 
       {/* Chevron Column */}
