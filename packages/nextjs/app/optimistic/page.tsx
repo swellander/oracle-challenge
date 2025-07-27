@@ -4,6 +4,7 @@ import type { NextPage } from "next";
 import { useReadContracts } from "wagmi";
 import { AssertedTable } from "~~/components/oracle/optimistic/AssertedTable";
 import { ProposedTable } from "~~/components/oracle/optimistic/ProposedTable";
+import { SettledTable } from "~~/components/oracle/optimistic/SettledTable";
 import { SubmitAssertionButton } from "~~/components/oracle/optimistic/SubmitAssertionButton";
 import { useDeployedContractInfo, useScaffoldReadContract } from "~~/hooks/scaffold-eth";
 
@@ -70,6 +71,10 @@ const Home: NextPage = () => {
       <AssertedTable assertions={assertionStateMap.filter(assertion => assertion.state === 1)} />
       <h2 className="text-2xl font-bold mt-12 mb-4">Proposed</h2>
       <ProposedTable assertions={assertionStateMap.filter(assertion => assertion.state === 2)} />
+      {/* <h2 className="text-2xl font-bold mt-12 mb-4">Disputed</h2>
+      <DisputedTable assertions={assertionStateMap.filter(assertion => assertion.state === 3)} /> */}
+      <h2 className="text-2xl font-bold mt-12 mb-4">Settled</h2>
+      <SettledTable assertions={assertionStateMap.filter(assertion => assertion.state === 4)} />
     </div>
   );
 };

@@ -55,3 +55,7 @@ export interface OORowProps {
   assertionId: number;
   handleRowClick: (assertion: AssertionWithId) => void;
 }
+
+export interface SettledRowProps {
+  assertionId: number;
+}
