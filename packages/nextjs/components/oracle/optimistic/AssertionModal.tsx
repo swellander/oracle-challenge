@@ -4,9 +4,11 @@ import { useState } from "react";
 import { AssertionModalProps } from "../types";
 import { formatEther } from "viem";
 import { useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
+import { useGlobalState } from "~~/services/store/store";
 
 export const AssertionModal = ({ assertion, isOpen, onClose }: AssertionModalProps) => {
   const [isProposing, setIsProposing] = useState(false);
+  const { refetchAssertionStates } = useGlobalState();
 
   const { writeContractAsync } = useScaffoldWriteContract({
     contractName: "OptimisticOracle",
@@ -20,6 +22,8 @@ export const AssertionModal = ({ assertion, isOpen, onClose }: AssertionModalPro
         args: [BigInt(assertion.assertionId), outcome],
         value: assertion.bond,
       });
+      refetchAssertionStates();
+      onClose();
     } catch (error) {
       console.log(error);
     } finally {

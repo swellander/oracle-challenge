@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import type { NextPage } from "next";
 import { useReadContracts } from "wagmi";
 import { AssertedTable } from "~~/components/oracle/optimistic/AssertedTable";
@@ -7,8 +8,11 @@ import { ProposedTable } from "~~/components/oracle/optimistic/ProposedTable";
 import { SettledTable } from "~~/components/oracle/optimistic/SettledTable";
 import { SubmitAssertionButton } from "~~/components/oracle/optimistic/SubmitAssertionButton";
 import { useDeployedContractInfo, useScaffoldReadContract } from "~~/hooks/scaffold-eth";
+import { useGlobalState } from "~~/services/store/store";
 
 const Home: NextPage = () => {
+  const setRefetchAssertionStates = useGlobalState(state => state.setRefetchAssertionStates);
+
   const { data: nextAssertionId } = useScaffoldReadContract({
     contractName: "OptimisticOracle",
     functionName: "nextAssertionId",
@@ -29,9 +33,16 @@ const Home: NextPage = () => {
       })).filter(contract => contract.address && contract.abi)
     : [];
 
-  const { data: assertionStates } = useReadContracts({
+  const { data: assertionStates, refetch: refetchAssertionStates } = useReadContracts({
     contracts: assertionContracts,
   });
+
+  // Set the refetch function in the global store
+  useEffect(() => {
+    if (refetchAssertionStates) {
+      setRefetchAssertionStates(refetchAssertionStates);
+    }
+  }, [refetchAssertionStates, setRefetchAssertionStates]);
 
   // Map assertion IDs to their states and filter out expired ones (state 5)
   const assertionStateMap =

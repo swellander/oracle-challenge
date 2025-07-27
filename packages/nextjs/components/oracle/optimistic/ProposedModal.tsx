@@ -5,9 +5,11 @@ import { AssertionModalProps } from "../types";
 import { formatEther } from "viem";
 import { Address } from "~~/components/scaffold-eth";
 import { useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
+import { useGlobalState } from "~~/services/store/store";
 
 export const ProposedModal = ({ assertion, isOpen, onClose }: AssertionModalProps) => {
   const [isDisputing, setIsDisputing] = useState(false);
+  const { refetchAssertionStates } = useGlobalState();
 
   const { writeContractAsync } = useScaffoldWriteContract({
     contractName: "OptimisticOracle",
@@ -21,6 +23,8 @@ export const ProposedModal = ({ assertion, isOpen, onClose }: AssertionModalProp
         args: [BigInt(assertion.assertionId)],
         value: assertion.bond,
       });
+      refetchAssertionStates();
+      onClose();
     } catch (error) {
       console.log(error);
     } finally {

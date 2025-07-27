@@ -23,6 +23,9 @@ type GlobalState = {
   // Block timestamp tracking
   timestamp: bigint | null;
   setTimestamp: (timestamp: bigint | null) => void;
+  // Optimistic Oracle
+  refetchAssertionStates: () => void;
+  setRefetchAssertionStates: (refetchFn: () => void) => void;
 };
 
 export const useGlobalState = create<GlobalState>(set => ({
@@ -39,4 +42,8 @@ export const useGlobalState = create<GlobalState>(set => ({
   // Block timestamp tracking
   timestamp: null,
   setTimestamp: (timestamp: bigint | null): void => set(() => ({ timestamp })),
+  // Optimistic Oracle
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  refetchAssertionStates: () => {},
+  setRefetchAssertionStates: (refetchFn: () => void) => set(() => ({ refetchAssertionStates: refetchFn })),
 }));
