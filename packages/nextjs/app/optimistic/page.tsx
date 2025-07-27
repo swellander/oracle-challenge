@@ -4,6 +4,8 @@ import { useEffect } from "react";
 import type { NextPage } from "next";
 import { useReadContracts } from "wagmi";
 import { AssertedTable } from "~~/components/oracle/optimistic/AssertedTable";
+import { DisputedTable } from "~~/components/oracle/optimistic/DisputedTable";
+import { ExpiredTable } from "~~/components/oracle/optimistic/ExpiredTable";
 import { ProposedTable } from "~~/components/oracle/optimistic/ProposedTable";
 import { SettledTable } from "~~/components/oracle/optimistic/SettledTable";
 import { SubmitAssertionButton } from "~~/components/oracle/optimistic/SubmitAssertionButton";
@@ -50,7 +52,7 @@ const Home: NextPage = () => {
       ? Array.from({ length: Number(nextAssertionId) - 1 }, (_, i) => ({
           assertionId: i + 1,
           state: (assertionStates[i]?.result as number) || 0, // Default to 0 (Invalid) if no result
-        })).filter(assertion => assertion.state !== 5)
+        }))
       : []; // Filter out Expired (state 5)
 
   console.log("Assertion State Map (filtered):", assertionStateMap);
@@ -82,10 +84,12 @@ const Home: NextPage = () => {
       <AssertedTable assertions={assertionStateMap.filter(assertion => assertion.state === 1)} />
       <h2 className="text-2xl font-bold mt-12 mb-4">Proposed</h2>
       <ProposedTable assertions={assertionStateMap.filter(assertion => assertion.state === 2)} />
-      {/* <h2 className="text-2xl font-bold mt-12 mb-4">Disputed</h2>
-      <DisputedTable assertions={assertionStateMap.filter(assertion => assertion.state === 3)} /> */}
+      <h2 className="text-2xl font-bold mt-12 mb-4">Disputed</h2>
+      <DisputedTable assertions={assertionStateMap.filter(assertion => assertion.state === 3)} />
       <h2 className="text-2xl font-bold mt-12 mb-4">Settled</h2>
       <SettledTable assertions={assertionStateMap.filter(assertion => assertion.state === 4)} />
+      <h2 className="text-2xl font-bold mt-12 mb-4">Expired</h2>
+      <ExpiredTable assertions={assertionStateMap.filter(assertion => assertion.state === 5)} />
     </div>
   );
 };

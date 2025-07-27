@@ -27,7 +27,7 @@ export const TimeLeft = ({ startTime, endTime }: { startTime: bigint; endTime: b
   if (!timestamp) return null;
 
   return (
-    <div className="w-48 space-y-1">
+    <div className="w-full space-y-1">
       <div className={ended || duration < 60 ? "text-error" : ""}>
         {ended ? "Ended" : formatDuration(duration, now < start)}
       </div>
