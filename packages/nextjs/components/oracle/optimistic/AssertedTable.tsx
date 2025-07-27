@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { AssertionWithId, OOTableProps } from "../types";
-import { AssertedCard } from "./AssertedCard";
+import { AssertedRow } from "./AssertedRow";
 import { AssertionModal } from "./AssertionModal";
 
 export const AssertedTable = ({ assertions }: OOTableProps) => {
@@ -35,7 +35,7 @@ export const AssertedTable = ({ assertions }: OOTableProps) => {
 
         <tbody>
           {assertions.map(assertion => (
-            <AssertedCard
+            <AssertedRow
               key={assertion.assertionId}
               assertionId={assertion.assertionId}
               handleRowClick={handleRowClick}

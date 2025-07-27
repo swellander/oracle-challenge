@@ -6,7 +6,7 @@ import { formatEther } from "viem";
 import { ChevronRightIcon } from "@heroicons/react/24/outline";
 import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
 
-export const ProposedCard = ({ assertionId, handleRowClick }: OORowProps) => {
+export const ProposedRow = ({ assertionId, handleRowClick }: OORowProps) => {
   const { data: assertionData } = useScaffoldReadContract({
     contractName: "OptimisticOracle",
     functionName: "getAssertion",
@@ -24,21 +24,15 @@ export const ProposedCard = ({ assertionId, handleRowClick }: OORowProps) => {
       {/* Query Column */}
       <td className="px-6 py-4">
         <div className="flex items-center gap-3">
-          <div className="group-hover:text-error font-medium text-base-content mb-1 truncate">
-            {assertionData?.description}
-          </div>
+          <div className="group-hover:text-error truncate">{assertionData?.description}</div>
         </div>
       </td>
 
       {/* Proposal Column */}
-      <td className="px-6 py-4">
-        <span className="font-medium">{assertionData?.proposedOutcome.toString()}</span>
-      </td>
+      <td className="px-6 py-4">{assertionData?.proposedOutcome.toString()}</td>
 
       {/* Bond Column */}
-      <td className="px-6 py-4">
-        <span className="font-medium">{formatEther(assertionData?.bond)} ETH</span>
-      </td>
+      <td className="px-6 py-4">{formatEther(assertionData?.bond)} ETH</td>
 
       {/* Challenge Period Column */}
       <td className="px-6 py-4">

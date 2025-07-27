@@ -4,7 +4,7 @@ import { formatEther } from "viem";
 import { ChevronRightIcon } from "@heroicons/react/24/outline";
 import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
 
-export const AssertedCard = ({
+export const AssertedRow = ({
   assertionId,
   handleRowClick,
 }: {
@@ -29,20 +29,16 @@ export const AssertedCard = ({
       <td className="px-6 py-4">
         <div className="flex items-center gap-3">
           <div>
-            <div className="font-medium mb-1 text-base-content group-hover:text-error">{assertionData.description}</div>
+            <div className="group-hover:text-error">{assertionData.description}</div>
           </div>
         </div>
       </td>
 
       {/* Bond Column */}
-      <td className="px-6 py-4">
-        <span className="font-medium">{formatEther(assertionData.bond)} ETH</span>
-      </td>
+      <td className="px-6 py-4">{formatEther(assertionData.bond)} ETH</td>
 
       {/* Reward Column */}
-      <td className="px-6 py-4">
-        <span className="font-medium">{formatEther(assertionData.reward)} ETH</span>
-      </td>
+      <td className="px-6 py-4">{formatEther(assertionData.reward)} ETH</td>
 
       {/* Time Left Column */}
       <td className="px-6 py-4">
