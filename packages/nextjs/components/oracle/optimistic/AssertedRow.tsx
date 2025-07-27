@@ -26,27 +26,23 @@ export const AssertedRow = ({
       className={`group border-b border-base-300 cursor-pointer`}
     >
       {/* Description Column */}
-      <td className="px-6 py-4">
-        <div className="flex items-center gap-3">
-          <div>
-            <div className="group-hover:text-error">{assertionData.description}</div>
-          </div>
-        </div>
+      <td>
+        <div className="group-hover:text-error">{assertionData.description}</div>
       </td>
 
       {/* Bond Column */}
-      <td className="px-6 py-4">{formatEther(assertionData.bond)} ETH</td>
+      <td>{formatEther(assertionData.bond)} ETH</td>
 
       {/* Reward Column */}
-      <td className="px-6 py-4">{formatEther(assertionData.reward)} ETH</td>
+      <td>{formatEther(assertionData.reward)} ETH</td>
 
       {/* Time Left Column */}
-      <td className="px-6 py-4">
+      <td>
         <TimeLeft startTime={assertionData.startTime} endTime={assertionData.endTime} />
       </td>
 
       {/* Chevron Column */}
-      <td className="">
+      <td>
         <div className="w-6 h-6 rounded-full border-error border flex items-center justify-center hover:bg-base-200 group-hover:bg-error transition-colors mx-auto">
           <ChevronRightIcon className="w-4 h-4 text-error group-hover:text-white stroke-2 transition-colors" />
         </div>

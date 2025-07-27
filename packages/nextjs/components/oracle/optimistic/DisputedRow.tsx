@@ -25,21 +25,17 @@ export const DisputedRow = ({
       className={`group border-b border-base-300 cursor-pointer`}
     >
       {/* Description Column */}
-      <td className="px-6 py-4">
-        <div className="flex items-center gap-3">
-          <div>
-            <div className="group-hover:text-error">{assertionData.description}</div>
-          </div>
-        </div>
+      <td>
+        <div className="group-hover:text-error">{assertionData.description}</div>
       </td>
 
       {/* Proposer Column */}
-      <td className="px-6 py-4">
+      <td>
         <Address address={assertionData.proposer} format="short" onlyEnsOrAddress disableAddressLink size="sm" />
       </td>
 
       {/* Disputer Column */}
-      <td className="px-6 py-4">
+      <td>
         <Address address={assertionData.disputer} format="short" onlyEnsOrAddress disableAddressLink size="sm" />
       </td>
 

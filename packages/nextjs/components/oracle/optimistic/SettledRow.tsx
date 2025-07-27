@@ -43,25 +43,21 @@ export const SettledRow = ({ assertionId }: SettledRowProps) => {
   return (
     <tr key={assertionId} className={`border-b border-base-300`}>
       {/* Query Column */}
-      <td className="px-6 py-4">
-        <div className="truncate">{assertionData?.description}</div>
-      </td>
+      <td>{assertionData?.description}</td>
 
       {/* Answer Column */}
-      <td className="px-6 py-4">{outcome ? "True" : "False"}</td>
+      <td>{outcome ? "True" : "False"}</td>
 
       {/* Winner Column */}
-      <td className="px-6 py-4">
+      <td>
         <Address address={winner} format="short" onlyEnsOrAddress disableAddressLink size="sm" />
       </td>
 
       {/* Reward Column */}
-      <td className="px-6 py-4">
-        <span className="">{formatEther(assertionData?.reward)} ETH</span>
-      </td>
+      <td>{formatEther(assertionData?.reward)} ETH</td>
 
       {/* Claimed Column */}
-      <td className="px-6 py-4">
+      <td>
         {assertionData?.claimed ? (
           <button className="btn btn-primary btn-xs" disabled>
             Claimed

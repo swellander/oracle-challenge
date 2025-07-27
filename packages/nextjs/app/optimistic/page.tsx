@@ -53,7 +53,7 @@ const Home: NextPage = () => {
           assertionId: i + 1,
           state: (assertionStates[i]?.result as number) || 0, // Default to 0 (Invalid) if no result
         }))
-      : []; // Filter out Expired (state 5)
+      : [];
 
   console.log("Assertion State Map (filtered):", assertionStateMap);
 
@@ -75,7 +75,7 @@ const Home: NextPage = () => {
   // console.log("Assertion Data:", assertionData);
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-8 py-8 max-w-screen-lg xl:max-w-screen-xl">
       {/* Submit Assertion Button with Modal */}
       <SubmitAssertionButton />
 

@@ -35,22 +35,18 @@ export const ExpiredRow = ({ assertionId }: { assertionId: number }) => {
   return (
     <tr key={assertionId} className={`border-b border-base-300`}>
       {/* Description Column */}
-      <td className="px-6 py-4">
-        <div className="flex items-center gap-3">
-          <div>{assertionData.description}</div>
-        </div>
-      </td>
+      <td>{assertionData.description}</td>
 
       {/* Asserter Column */}
-      <td className="px-6 py-4">
+      <td>
         <Address address={assertionData.asserter} format="short" onlyEnsOrAddress disableAddressLink size="sm" />
       </td>
 
       {/* Reward Column */}
-      <td className="px-6 py-4">{formatEther(assertionData.reward)} ETH</td>
+      <td>{formatEther(assertionData.reward)} ETH</td>
 
       {/* Claimed Column */}
-      <td className="px-6 py-4">
+      <td>
         {assertionData?.claimed ? (
           <button className="btn btn-primary btn-xs" disabled>
             Claimed

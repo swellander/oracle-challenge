@@ -5,15 +5,15 @@ import { ExpiredRow } from "./ExpiredRow";
 
 export const ExpiredTable = ({ assertions }: OOTableProps) => {
   return (
-    <div className="bg-base-100 rounded-lg shadow-lg overflow-hidden">
-      <table className="w-full table-fixed">
+    <div className="bg-base-100 rounded-lg shadow-lg overflow-x-auto">
+      <table className="w-full table-auto [&_th]:px-6 [&_th]:py-4 [&_td]:px-6 [&_td]:py-4">
         {/* Header */}
         <thead>
           <tr className="bg-base-300">
-            <th className="px-6 py-4 text-left font-semibold text-base-content w-5/12">Description</th>
-            <th className="px-6 py-4 text-left font-semibold text-base-content w-3/12">Asserter</th>
-            <th className="px-6 py-4 text-left font-semibold text-base-content w-2/12">Reward</th>
-            <th className="px-6 py-4 text-left font-semibold text-base-content w-2/12">Claim Refund</th>
+            <th className="text-left font-semibold w-5/12">Description</th>
+            <th className="text-left font-semibold w-3/12">Asserter</th>
+            <th className="text-left font-semibold w-2/12">Reward</th>
+            <th className="text-left font-semibold w-2/12">Claim Refund</th>
           </tr>
         </thead>
 

@@ -22,25 +22,23 @@ export const ProposedRow = ({ assertionId, handleRowClick }: OORowProps) => {
       onClick={() => handleRowClick({ ...assertionData, assertionId })}
     >
       {/* Query Column */}
-      <td className="px-6 py-4">
-        <div className="flex items-center gap-3">
-          <div className="group-hover:text-error truncate">{assertionData?.description}</div>
-        </div>
+      <td>
+        <div className="group-hover:text-error">{assertionData?.description}</div>
       </td>
 
-      {/* Proposal Column */}
-      <td className="px-6 py-4">{assertionData?.proposedOutcome.toString()}</td>
-
       {/* Bond Column */}
-      <td className="px-6 py-4">{formatEther(assertionData?.bond)} ETH</td>
+      <td>{formatEther(assertionData?.bond)} ETH</td>
+
+      {/* Proposal Column */}
+      <td>{assertionData?.proposedOutcome ? "True" : "False"}</td>
 
       {/* Challenge Period Column */}
-      <td className="px-6 py-4">
+      <td>
         <TimeLeft startTime={assertionData?.startTime} endTime={assertionData?.endTime} />
       </td>
 
       {/* Chevron Column */}
-      <td className="">
+      <td>
         <div className="w-6 h-6 rounded-full border-error border flex items-center justify-center hover:bg-base-200 group-hover:bg-error transition-colors mx-auto">
           <ChevronRightIcon className="w-4 h-4 text-error group-hover:text-white stroke-2 transition-colors" />
         </div>
