@@ -1,6 +1,7 @@
 "use client";
 
 import { OOTableProps } from "../types";
+import { EmptyRow } from "./EmptyRow";
 import { ExpiredRow } from "./ExpiredRow";
 
 export const ExpiredTable = ({ assertions }: OOTableProps) => {
@@ -18,9 +19,11 @@ export const ExpiredTable = ({ assertions }: OOTableProps) => {
         </thead>
 
         <tbody>
-          {assertions.map(assertion => (
-            <ExpiredRow key={assertion.assertionId} assertionId={assertion.assertionId} />
-          ))}
+          {assertions.length > 0 ? (
+            assertions.map(assertion => <ExpiredRow key={assertion.assertionId} assertionId={assertion.assertionId} />)
+          ) : (
+            <EmptyRow colspan={4} />
+          )}
         </tbody>
       </table>
     </div>

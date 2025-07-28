@@ -1,4 +1,5 @@
 import { OOTableProps } from "../types";
+import { EmptyRow } from "./EmptyRow";
 import { ProposedRow } from "./ProposedRow";
 
 export const ProposedTable = ({ assertions }: OOTableProps) => {
@@ -17,9 +18,13 @@ export const ProposedTable = ({ assertions }: OOTableProps) => {
         </thead>
 
         <tbody>
-          {assertions.map(assertion => (
-            <ProposedRow key={assertion.assertionId} assertionId={assertion.assertionId} state={assertion.state} />
-          ))}
+          {assertions.length > 0 ? (
+            assertions.map(assertion => (
+              <ProposedRow key={assertion.assertionId} assertionId={assertion.assertionId} state={assertion.state} />
+            ))
+          ) : (
+            <EmptyRow colspan={5} />
+          )}
         </tbody>
       </table>
     </div>

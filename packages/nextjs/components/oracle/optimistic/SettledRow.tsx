@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { SettledRowProps } from "../types";
+import { LoadingRow } from "./LoadingRow";
 import { formatEther } from "viem";
 import { Address } from "~~/components/scaffold-eth";
 import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
@@ -9,7 +10,7 @@ import { ZERO_ADDRESS } from "~~/utils/scaffold-eth/common";
 
 export const SettledRow = ({ assertionId }: SettledRowProps) => {
   const [isClaiming, setIsClaiming] = useState(false);
-  const { data: assertionData } = useScaffoldReadContract({
+  const { data: assertionData, isLoading } = useScaffoldReadContract({
     contractName: "OptimisticOracle",
     functionName: "getAssertion",
     args: [BigInt(assertionId)],
@@ -19,6 +20,7 @@ export const SettledRow = ({ assertionId }: SettledRowProps) => {
     contractName: "OptimisticOracle",
   });
 
+  if (isLoading) return <LoadingRow />;
   if (!assertionData) return null;
 
   const handleClaim = async () => {

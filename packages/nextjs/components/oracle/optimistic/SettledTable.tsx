@@ -1,6 +1,7 @@
 "use client";
 
 import { OOTableProps } from "../types";
+import { EmptyRow } from "./EmptyRow";
 import { SettledRow } from "./SettledRow";
 
 export const SettledTable = ({ assertions }: OOTableProps) => {
@@ -19,9 +20,11 @@ export const SettledTable = ({ assertions }: OOTableProps) => {
         </thead>
 
         <tbody>
-          {assertions.map(assertion => (
-            <SettledRow key={assertion.assertionId} assertionId={assertion.assertionId} />
-          ))}
+          {assertions.length > 0 ? (
+            assertions.map(assertion => <SettledRow key={assertion.assertionId} assertionId={assertion.assertionId} />)
+          ) : (
+            <EmptyRow colspan={5} />
+          )}
         </tbody>
       </table>
     </div>

@@ -2,6 +2,7 @@
 
 import { OOTableProps } from "../types";
 import { DisputedRow } from "./DisputedRow";
+import { EmptyRow } from "./EmptyRow";
 
 export const DisputedTable = ({ assertions }: OOTableProps) => {
   return (
@@ -18,9 +19,13 @@ export const DisputedTable = ({ assertions }: OOTableProps) => {
         </thead>
 
         <tbody>
-          {assertions.map(assertion => (
-            <DisputedRow key={assertion.assertionId} assertionId={assertion.assertionId} state={assertion.state} />
-          ))}
+          {assertions.length > 0 ? (
+            assertions.map(assertion => (
+              <DisputedRow key={assertion.assertionId} assertionId={assertion.assertionId} state={assertion.state} />
+            ))
+          ) : (
+            <EmptyRow colspan={4} />
+          )}
         </tbody>
       </table>
     </div>
