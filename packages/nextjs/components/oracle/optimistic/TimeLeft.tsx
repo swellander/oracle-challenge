@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useGlobalState } from "~~/services/store/store";
 
 function formatDuration(seconds: number, isPending: boolean) {
@@ -10,10 +10,24 @@ function formatDuration(seconds: number, isPending: boolean) {
 
 export const TimeLeft = ({ startTime, endTime }: { startTime: bigint; endTime: bigint }) => {
   const { timestamp, refetchAssertionStates } = useGlobalState();
+  const [currentTime, setCurrentTime] = useState<number>(0);
+
+  // Update current time every second
+  useEffect(() => {
+    // Initialize with timestamp from global state or current time
+    const initialTime = timestamp ? Number(timestamp) : Math.floor(Date.now() / 1000);
+    setCurrentTime(initialTime);
+
+    const interval = setInterval(() => {
+      setCurrentTime(prev => prev + 1);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [timestamp]);
 
   const start = Number(startTime);
   const end = Number(endTime);
-  const now = timestamp ? Number(timestamp) : 0;
+  const now = currentTime;
   const duration = end - now;
   const ended = duration <= 0;
   const progressPercent = Math.min(((now - start) / (end - start)) * 100, 100);
@@ -24,18 +38,18 @@ export const TimeLeft = ({ startTime, endTime }: { startTime: bigint; endTime: b
     }
   }, [ended, refetchAssertionStates, timestamp]);
 
-  if (!timestamp) return null;
+  if (!timestamp) return "Calculating...";
 
   return (
     <div className="w-full space-y-1">
       <div className={ended || duration < 60 ? "text-error" : ""}>
-        {ended ? "Ended" : formatDuration(duration, now < start)}
+        {ended ? "Ended" : now < start ? formatDuration(start - now, true) : formatDuration(duration, false)}
       </div>
-      {now > start && (
-        <div className="w-full h-1 bg-base-300 rounded-full overflow-hidden">
-          <div className="h-full bg-error transition-all" style={{ width: `${progressPercent}%` }} />
-        </div>
-      )}
+      <div
+        className={`w-full h-1 bg-base-300 rounded-full overflow-hidden transition-opacity ${now > start ? "opacity-100" : "opacity-0"}`}
+      >
+        <div className="h-full bg-error transition-all" style={{ width: `${progressPercent}%` }} />
+      </div>
     </div>
   );
 };
