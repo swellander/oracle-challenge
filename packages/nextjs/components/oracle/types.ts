@@ -38,8 +38,13 @@ export interface AssertionWithId extends Assertion {
   assertionId: number;
 }
 
+export interface AssertionWithIdAndState extends Assertion {
+  assertionId: number;
+  state: number;
+}
+
 export interface AssertionModalProps {
-  assertion: AssertionWithId;
+  assertion: AssertionWithIdAndState;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -53,7 +58,7 @@ export interface OOTableProps {
 
 export interface OORowProps {
   assertionId: number;
-  handleRowClick: (assertion: AssertionWithId) => void;
+  state: number;
 }
 
 export interface SettledRowProps {

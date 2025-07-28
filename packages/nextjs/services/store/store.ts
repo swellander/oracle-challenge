@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { AssertionWithIdAndState } from "~~/components/oracle/types";
 import scaffoldConfig from "~~/scaffold.config";
 import { ChainWithAttributes } from "~~/utils/scaffold-eth";
 
@@ -26,6 +27,10 @@ type GlobalState = {
   // Optimistic Oracle
   refetchAssertionStates: () => void;
   setRefetchAssertionStates: (refetchFn: () => void) => void;
+  // Assertion Modal
+  openAssertion: AssertionWithIdAndState | null;
+  openAssertionModal: (assertion: AssertionWithIdAndState) => void;
+  closeAssertionModal: () => void;
 };
 
 export const useGlobalState = create<GlobalState>(set => ({
@@ -46,4 +51,11 @@ export const useGlobalState = create<GlobalState>(set => ({
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   refetchAssertionStates: () => {},
   setRefetchAssertionStates: (refetchFn: () => void) => set(() => ({ refetchAssertionStates: refetchFn })),
+  // Assertion Modal
+  openAssertion: null,
+  openAssertionModal: (assertion: AssertionWithIdAndState) =>
+    set(state => ({
+      openAssertion: assertion,
+    })),
+  closeAssertionModal: () => set(() => ({ openAssertion: null })),
 }));

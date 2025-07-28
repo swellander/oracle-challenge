@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import type { NextPage } from "next";
 import { useReadContracts } from "wagmi";
 import { AssertedTable } from "~~/components/oracle/optimistic/AssertedTable";
+import { AssertionModal } from "~~/components/oracle/optimistic/AssertionModal";
 import { DisputedTable } from "~~/components/oracle/optimistic/DisputedTable";
 import { ExpiredTable } from "~~/components/oracle/optimistic/ExpiredTable";
 import { ProposedTable } from "~~/components/oracle/optimistic/ProposedTable";
@@ -90,6 +91,8 @@ const Home: NextPage = () => {
       <SettledTable assertions={assertionStateMap.filter(assertion => assertion.state === 4)} />
       <h2 className="text-2xl font-bold mt-12 mb-4">Expired</h2>
       <ExpiredTable assertions={assertionStateMap.filter(assertion => assertion.state === 5)} />
+
+      <AssertionModal />
     </div>
   );
 };

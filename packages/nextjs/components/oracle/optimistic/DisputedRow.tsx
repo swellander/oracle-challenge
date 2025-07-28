@@ -1,15 +1,11 @@
-import { AssertionWithId } from "../types";
 import { ChevronRightIcon } from "@heroicons/react/24/outline";
 import { Address } from "~~/components/scaffold-eth";
 import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
+import { useGlobalState } from "~~/services/store/store";
 
-export const DisputedRow = ({
-  assertionId,
-  handleRowClick,
-}: {
-  assertionId: number;
-  handleRowClick: (assertion: AssertionWithId) => void;
-}) => {
+export const DisputedRow = ({ assertionId, state }: { assertionId: number; state: number }) => {
+  const { openAssertionModal } = useGlobalState();
+
   const { data: assertionData } = useScaffoldReadContract({
     contractName: "OptimisticOracle",
     functionName: "getAssertion",
@@ -21,7 +17,9 @@ export const DisputedRow = ({
   return (
     <tr
       key={assertionId}
-      onClick={() => handleRowClick({ ...assertionData, assertionId })}
+      onClick={() => {
+        openAssertionModal({ ...assertionData, assertionId, state });
+      }}
       className={`group border-b border-base-300 cursor-pointer`}
     >
       {/* Description Column */}

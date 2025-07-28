@@ -5,8 +5,10 @@ import { TimeLeft } from "./TimeLeft";
 import { formatEther } from "viem";
 import { ChevronRightIcon } from "@heroicons/react/24/outline";
 import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
+import { useGlobalState } from "~~/services/store/store";
 
-export const ProposedRow = ({ assertionId, handleRowClick }: OORowProps) => {
+export const ProposedRow = ({ assertionId, state }: OORowProps) => {
+  const { openAssertionModal } = useGlobalState();
   const { data: assertionData } = useScaffoldReadContract({
     contractName: "OptimisticOracle",
     functionName: "getAssertion",
@@ -19,7 +21,9 @@ export const ProposedRow = ({ assertionId, handleRowClick }: OORowProps) => {
     <tr
       key={assertionId}
       className={`group border-b border-base-300 cursor-pointer`}
-      onClick={() => handleRowClick({ ...assertionData, assertionId })}
+      onClick={() => {
+        openAssertionModal({ ...assertionData, assertionId, state });
+      }}
     >
       {/* Query Column */}
       <td>

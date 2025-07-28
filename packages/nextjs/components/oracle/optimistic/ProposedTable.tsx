@@ -1,22 +1,7 @@
-import { useState } from "react";
-import { AssertionWithId, OOTableProps } from "../types";
-import { ProposedModal } from "./ProposedModal";
+import { OOTableProps } from "../types";
 import { ProposedRow } from "./ProposedRow";
 
 export const ProposedTable = ({ assertions }: OOTableProps) => {
-  const [selectedAssertion, setSelectedAssertion] = useState<AssertionWithId | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const handleRowClick = (assertion: AssertionWithId) => {
-    setSelectedAssertion(assertion);
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setSelectedAssertion(null);
-  };
-
   return (
     <div className="bg-base-100 rounded-lg shadow-lg overflow-x-auto">
       <table className="w-full table-auto [&_th]:px-6 [&_th]:py-4 [&_td]:px-6 [&_td]:py-4">
@@ -33,19 +18,10 @@ export const ProposedTable = ({ assertions }: OOTableProps) => {
 
         <tbody>
           {assertions.map(assertion => (
-            <ProposedRow
-              key={assertion.assertionId}
-              assertionId={assertion.assertionId}
-              handleRowClick={handleRowClick}
-            />
+            <ProposedRow key={assertion.assertionId} assertionId={assertion.assertionId} state={assertion.state} />
           ))}
         </tbody>
       </table>
-
-      {/* Single Modal Component */}
-      {isModalOpen && selectedAssertion && (
-        <ProposedModal assertion={selectedAssertion} isOpen={isModalOpen} onClose={closeModal} />
-      )}
     </div>
   );
 };

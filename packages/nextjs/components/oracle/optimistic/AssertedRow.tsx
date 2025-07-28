@@ -1,16 +1,12 @@
-import { AssertionWithId } from "../types";
 import { TimeLeft } from "./TimeLeft";
 import { formatEther } from "viem";
 import { ChevronRightIcon } from "@heroicons/react/24/outline";
 import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
+import { useGlobalState } from "~~/services/store/store";
 
-export const AssertedRow = ({
-  assertionId,
-  handleRowClick,
-}: {
-  assertionId: number;
-  handleRowClick: (assertion: AssertionWithId) => void;
-}) => {
+export const AssertedRow = ({ assertionId, state }: { assertionId: number; state: number }) => {
+  const { openAssertionModal } = useGlobalState();
+
   const { data: assertionData } = useScaffoldReadContract({
     contractName: "OptimisticOracle",
     functionName: "getAssertion",
@@ -22,7 +18,9 @@ export const AssertedRow = ({
   return (
     <tr
       key={assertionId}
-      onClick={() => handleRowClick({ ...assertionData, assertionId })}
+      onClick={() => {
+        openAssertionModal({ ...assertionData, assertionId, state });
+      }}
       className={`group border-b border-base-300 cursor-pointer`}
     >
       {/* Description Column */}
