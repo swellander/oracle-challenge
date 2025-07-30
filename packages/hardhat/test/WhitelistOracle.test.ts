@@ -44,6 +44,14 @@ describe("WhitelistOracle", function () {
     await expect(whitelistOracle.connect(nonOwner).removeOracle(0)).to.be.revertedWith("Not the owner");
   });
 
+  it("Should not allow adding duplicate oracle addresses", async function () {
+    const oracle = await simpleOracleFactory.deploy();
+
+    await whitelistOracle.addOracle(oracle.target);
+
+    await expect(whitelistOracle.addOracle(oracle.target)).to.be.revertedWith("Oracle already exists");
+  });
+
   it("Should emit OracleAdded event when an oracle is added", async function () {
     const oracle = await simpleOracleFactory.deploy();
 
