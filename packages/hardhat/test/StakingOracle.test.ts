@@ -78,6 +78,14 @@ describe("StakingOracle", function () {
         "Insufficient stake",
       );
     });
+
+    it("Should reject duplicate node registration", async function () {
+      await oracle.connect(node1).registerNode({ value: MINIMUM_STAKE });
+
+      await expect(oracle.connect(node1).registerNode({ value: MINIMUM_STAKE })).to.be.revertedWith(
+        "Node already registered",
+      );
+    });
   });
 
   describe("Price Reporting", function () {
@@ -222,6 +230,12 @@ describe("StakingOracle", function () {
 
       price = await oracle.getPrice();
       expect(price).to.equal(1700);
+    });
+
+    it("Should revert when no valid prices are available", async function () {
+      await time.increase(STALE_DATA_WINDOW + 1);
+
+      await expect(oracle.getPrice()).to.be.revertedWith("No valid prices available");
     });
   });
 });
