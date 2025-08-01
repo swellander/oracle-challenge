@@ -15,6 +15,7 @@ interface SubmitAssertionModalProps {
 
 const SubmitAssertionModal = ({ isOpen, onClose }: SubmitAssertionModalProps) => {
   const { timestamp } = useGlobalState();
+  const [isLoading, setIsLoading] = useState(false);
 
   const [description, setDescription] = useState("");
   const [reward, setReward] = useState<string>("");
@@ -31,6 +32,7 @@ const SubmitAssertionModal = ({ isOpen, onClose }: SubmitAssertionModalProps) =>
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      setIsLoading(true);
       const startTimeFormatted = startTime.length === 0 ? 0n : BigInt(startTime);
       const endTimeFormatted = endTime.length === 0 ? 0n : BigInt(endTime);
 
@@ -47,6 +49,8 @@ const SubmitAssertionModal = ({ isOpen, onClose }: SubmitAssertionModalProps) =>
       onClose();
     } catch (error) {
       console.log("Error with submission", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -60,6 +64,7 @@ const SubmitAssertionModal = ({ isOpen, onClose }: SubmitAssertionModalProps) =>
   };
 
   if (!isOpen) return null;
+  const readyToSubmit = description.trim().length > 0 && reward.trim().length > 0;
 
   return (
     <>
@@ -165,7 +170,8 @@ const SubmitAssertionModal = ({ isOpen, onClose }: SubmitAssertionModalProps) =>
               </div>
               {/* Action Buttons */}
               <div className="flex gap-3 mt-6">
-                <button type="submit" className="btn btn-primary flex-1">
+                <button type="submit" className="btn btn-primary flex-1" disabled={isLoading || !readyToSubmit}>
+                  {isLoading && <span className="loading loading-spinner loading-xs"></span>}
                   Submit
                 </button>
               </div>
