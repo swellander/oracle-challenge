@@ -12,6 +12,8 @@ contract StakingOracle {
         uint256 stakedAmount;
         uint256 lastReportedPrice;
         uint256 lastReportedTimestamp;
+        uint256 lastClaimedTimestamp;
+        uint256 lastSlashedTimestamp;
     }
 
     mapping(address => OracleNode) public nodes;
@@ -19,6 +21,7 @@ contract StakingOracle {
 
     uint256 public constant MINIMUM_STAKE = 10 ether;
     uint256 public constant STALE_DATA_WINDOW = 5 seconds;
+    uint256 public constant SLASHER_REWARD_PERCENTAGE = 10;
 
     event NodeRegistered(address indexed node, uint256 stakedAmount);
     event PriceReported(address indexed node, uint256 price);
@@ -29,6 +32,11 @@ contract StakingOracle {
     event NodesValidated();
 
     address public oracleTokenAddress;
+
+    modifier onlyNode() {
+        require(nodes[msg.sender].nodeAddress != address(0), "Node not registered");
+        _;
+    }
 
     constructor() {
         oracleToken = new ORA();
@@ -43,7 +51,9 @@ contract StakingOracle {
             nodeAddress: msg.sender,
             stakedAmount: msg.value,
             lastReportedPrice: 0,
-            lastReportedTimestamp: 0
+            lastReportedTimestamp: 0,
+            lastClaimedTimestamp: block.timestamp,
+            lastSlashedTimestamp: 0
         });
 
         nodeAddresses.push(msg.sender);
@@ -51,11 +61,9 @@ contract StakingOracle {
         emit NodeRegistered(msg.sender, msg.value);
     }
 
-    function reportPrice(uint256 price) public {
+    function reportPrice(uint256 price) public onlyNode {
         OracleNode storage node = nodes[msg.sender];
-        require(node.nodeAddress != address(0), "Node not registered");
         require(node.stakedAmount >= MINIMUM_STAKE, "Not enough stake");
-
         node.lastReportedPrice = price;
         node.lastReportedTimestamp = block.timestamp;
 
@@ -67,28 +75,45 @@ contract StakingOracle {
         emit NodeRewarded(nodeAddress, reward);
     }
 
-    function slashNode(address nodeToSlash, uint256 penalty) internal {
+    function slashNode(address nodeToSlash, uint256 penalty) internal returns (uint256) {
         OracleNode storage node = nodes[nodeToSlash];
         uint256 actualPenalty = penalty > node.stakedAmount ? node.stakedAmount : penalty;
         node.stakedAmount -= actualPenalty;
 
+        uint256 reward = (actualPenalty * SLASHER_REWARD_PERCENTAGE) / 100;
+
         emit NodeSlashed(nodeToSlash, actualPenalty);
+
+        return reward;
     }
 
-    function validateNodes() public {
-        (address[] memory freshNodes, address[] memory staleNodes) = separateStaleNodes(nodeAddresses);
+    function claimReward() public onlyNode {
+        OracleNode memory node = nodes[msg.sender];
+        uint256 rewardAmount = 0;
 
-        for (uint256 i = 0; i < freshNodes.length; i++) {
-            address nodeAddress = freshNodes[i];
-            rewardNode(nodeAddress, 10 ether);
+        if (node.stakedAmount < MINIMUM_STAKE) {
+            if (node.lastClaimedTimestamp < node.lastSlashedTimestamp) {
+                rewardAmount = node.lastSlashedTimestamp - node.lastClaimedTimestamp;
+            }
+        } else {
+            rewardAmount = block.timestamp - node.lastClaimedTimestamp;
         }
 
-        for (uint256 i = 0; i < staleNodes.length; i++) {
-            address nodeAddress = staleNodes[i];
-            slashNode(nodeAddress, 1 ether);
+        require(rewardAmount > 0, "No rewards available");
+
+        nodes[msg.sender].lastClaimedTimestamp = block.timestamp;
+        rewardNode(msg.sender, rewardAmount * 10**18);
+    }
+
+    function slashNodes() public {
+        (, address[] memory addressesToSlash) = separateStaleNodes(nodeAddresses);
+        uint256 slasherReward;
+        for (uint i = 0; i < addressesToSlash.length; i++) {
+            slasherReward += slashNode(addressesToSlash[i], 1 ether);
         }
 
-        emit NodesValidated();
+        (bool sent,) = msg.sender.call{value: slasherReward}("");
+        require(sent, "Failed to send reward");        
     }
 
     /* ========== Price Calculation Functions ========== */
