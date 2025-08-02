@@ -19,7 +19,7 @@ contract StakingOracle {
     mapping(address => OracleNode) public nodes;
     address[] public nodeAddresses;
 
-    uint256 public constant MINIMUM_STAKE = 10 ether;
+    uint256 public constant MINIMUM_STAKE = 1 ether;
     uint256 public constant STALE_DATA_WINDOW = 5 seconds;
     uint256 public constant SLASHER_REWARD_PERCENTAGE = 10;
 
