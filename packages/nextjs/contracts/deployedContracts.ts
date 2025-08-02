@@ -6,6 +6,781 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 
 const deployedContracts = {
   31337: {
+    Decider: {
+      address: "0x0B306BF915C4d645ff596e518fAf3F9669b97016",
+      abi: [
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "_oracle",
+              type: "address",
+            },
+          ],
+          stateMutability: "nonpayable",
+          type: "constructor",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "uint256",
+              name: "assertionId",
+              type: "uint256",
+            },
+            {
+              indexed: false,
+              internalType: "bool",
+              name: "resolvedValue",
+              type: "bool",
+            },
+          ],
+          name: "DisputeSettled",
+          type: "event",
+        },
+        {
+          inputs: [],
+          name: "oracle",
+          outputs: [
+            {
+              internalType: "contract OptimisticOracle",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "owner",
+          outputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "newOracle",
+              type: "address",
+            },
+          ],
+          name: "setOracle",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "assertionId",
+              type: "uint256",
+            },
+            {
+              internalType: "bool",
+              name: "resolvedValue",
+              type: "bool",
+            },
+          ],
+          name: "settleDispute",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          stateMutability: "payable",
+          type: "receive",
+        },
+      ],
+      inheritedFunctions: {},
+    },
+    OptimisticOracle: {
+      address: "0x9A676e781A523b5d0C0e43731313A708CB607508",
+      abi: [
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "_decider",
+              type: "address",
+            },
+          ],
+          stateMutability: "nonpayable",
+          type: "constructor",
+        },
+        {
+          inputs: [],
+          name: "AlreadyClaimed",
+          type: "error",
+        },
+        {
+          inputs: [],
+          name: "AlreadySettled",
+          type: "error",
+        },
+        {
+          inputs: [],
+          name: "AssertionNotFound",
+          type: "error",
+        },
+        {
+          inputs: [],
+          name: "AssertionProposed",
+          type: "error",
+        },
+        {
+          inputs: [],
+          name: "AwaitingDecider",
+          type: "error",
+        },
+        {
+          inputs: [],
+          name: "InvalidTime",
+          type: "error",
+        },
+        {
+          inputs: [],
+          name: "NotDisputedAssertion",
+          type: "error",
+        },
+        {
+          inputs: [],
+          name: "NotEnoughValue",
+          type: "error",
+        },
+        {
+          inputs: [],
+          name: "NotProposedAssertion",
+          type: "error",
+        },
+        {
+          inputs: [],
+          name: "OnlyDecider",
+          type: "error",
+        },
+        {
+          inputs: [],
+          name: "OnlyOwner",
+          type: "error",
+        },
+        {
+          inputs: [],
+          name: "ProposalDisputed",
+          type: "error",
+        },
+        {
+          inputs: [],
+          name: "TransferFailed",
+          type: "error",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "assertionId",
+              type: "uint256",
+            },
+            {
+              indexed: false,
+              internalType: "bool",
+              name: "outcome",
+              type: "bool",
+            },
+            {
+              indexed: false,
+              internalType: "address",
+              name: "winner",
+              type: "address",
+            },
+          ],
+          name: "AssertionSettled",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: false,
+              internalType: "address",
+              name: "oldDecider",
+              type: "address",
+            },
+            {
+              indexed: false,
+              internalType: "address",
+              name: "newDecider",
+              type: "address",
+            },
+          ],
+          name: "DeciderUpdated",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "assertionId",
+              type: "uint256",
+            },
+            {
+              indexed: false,
+              internalType: "address",
+              name: "asserter",
+              type: "address",
+            },
+            {
+              indexed: false,
+              internalType: "string",
+              name: "description",
+              type: "string",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "reward",
+              type: "uint256",
+            },
+          ],
+          name: "EventAsserted",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "assertionId",
+              type: "uint256",
+            },
+            {
+              indexed: false,
+              internalType: "address",
+              name: "disputer",
+              type: "address",
+            },
+          ],
+          name: "OutcomeDisputed",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "assertionId",
+              type: "uint256",
+            },
+            {
+              indexed: false,
+              internalType: "address",
+              name: "proposer",
+              type: "address",
+            },
+            {
+              indexed: false,
+              internalType: "bool",
+              name: "outcome",
+              type: "bool",
+            },
+          ],
+          name: "OutcomeProposed",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "assertionId",
+              type: "uint256",
+            },
+            {
+              indexed: false,
+              internalType: "address",
+              name: "asserter",
+              type: "address",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "amount",
+              type: "uint256",
+            },
+          ],
+          name: "RefundClaimed",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "assertionId",
+              type: "uint256",
+            },
+            {
+              indexed: false,
+              internalType: "address",
+              name: "winner",
+              type: "address",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "amount",
+              type: "uint256",
+            },
+          ],
+          name: "RewardClaimed",
+          type: "event",
+        },
+        {
+          inputs: [],
+          name: "DECIDER_FEE",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "FIXED_BOND",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "MINIMUM_ASSERTION_WINDOW",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "MINIMUM_DISPUTE_WINDOW",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "MINIMUM_REWARD",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "string",
+              name: "description",
+              type: "string",
+            },
+            {
+              internalType: "uint256",
+              name: "startTime",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "endTime",
+              type: "uint256",
+            },
+          ],
+          name: "assertEvent",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "payable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          name: "assertions",
+          outputs: [
+            {
+              internalType: "address",
+              name: "asserter",
+              type: "address",
+            },
+            {
+              internalType: "address",
+              name: "proposer",
+              type: "address",
+            },
+            {
+              internalType: "address",
+              name: "disputer",
+              type: "address",
+            },
+            {
+              internalType: "bool",
+              name: "proposedOutcome",
+              type: "bool",
+            },
+            {
+              internalType: "bool",
+              name: "resolvedOutcome",
+              type: "bool",
+            },
+            {
+              internalType: "uint256",
+              name: "reward",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "bond",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "startTime",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "endTime",
+              type: "uint256",
+            },
+            {
+              internalType: "bool",
+              name: "claimed",
+              type: "bool",
+            },
+            {
+              internalType: "address",
+              name: "winner",
+              type: "address",
+            },
+            {
+              internalType: "string",
+              name: "description",
+              type: "string",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "assertionId",
+              type: "uint256",
+            },
+          ],
+          name: "claimDisputedReward",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "assertionId",
+              type: "uint256",
+            },
+          ],
+          name: "claimRefund",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "assertionId",
+              type: "uint256",
+            },
+          ],
+          name: "claimUndisputedReward",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "decider",
+          outputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "assertionId",
+              type: "uint256",
+            },
+          ],
+          name: "disputeOutcome",
+          outputs: [],
+          stateMutability: "payable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "assertionId",
+              type: "uint256",
+            },
+          ],
+          name: "getAssertion",
+          outputs: [
+            {
+              components: [
+                {
+                  internalType: "address",
+                  name: "asserter",
+                  type: "address",
+                },
+                {
+                  internalType: "address",
+                  name: "proposer",
+                  type: "address",
+                },
+                {
+                  internalType: "address",
+                  name: "disputer",
+                  type: "address",
+                },
+                {
+                  internalType: "bool",
+                  name: "proposedOutcome",
+                  type: "bool",
+                },
+                {
+                  internalType: "bool",
+                  name: "resolvedOutcome",
+                  type: "bool",
+                },
+                {
+                  internalType: "uint256",
+                  name: "reward",
+                  type: "uint256",
+                },
+                {
+                  internalType: "uint256",
+                  name: "bond",
+                  type: "uint256",
+                },
+                {
+                  internalType: "uint256",
+                  name: "startTime",
+                  type: "uint256",
+                },
+                {
+                  internalType: "uint256",
+                  name: "endTime",
+                  type: "uint256",
+                },
+                {
+                  internalType: "bool",
+                  name: "claimed",
+                  type: "bool",
+                },
+                {
+                  internalType: "address",
+                  name: "winner",
+                  type: "address",
+                },
+                {
+                  internalType: "string",
+                  name: "description",
+                  type: "string",
+                },
+              ],
+              internalType: "struct OptimisticOracle.EventAssertion",
+              name: "",
+              type: "tuple",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "assertionId",
+              type: "uint256",
+            },
+          ],
+          name: "getResolution",
+          outputs: [
+            {
+              internalType: "bool",
+              name: "",
+              type: "bool",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "assertionId",
+              type: "uint256",
+            },
+          ],
+          name: "getState",
+          outputs: [
+            {
+              internalType: "enum OptimisticOracle.State",
+              name: "",
+              type: "uint8",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "nextAssertionId",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "owner",
+          outputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "assertionId",
+              type: "uint256",
+            },
+            {
+              internalType: "bool",
+              name: "outcome",
+              type: "bool",
+            },
+          ],
+          name: "proposeOutcome",
+          outputs: [],
+          stateMutability: "payable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "_decider",
+              type: "address",
+            },
+          ],
+          name: "setDecider",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "assertionId",
+              type: "uint256",
+            },
+            {
+              internalType: "bool",
+              name: "resolvedOutcome",
+              type: "bool",
+            },
+          ],
+          name: "settleAssertion",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+      ],
+      inheritedFunctions: {},
+    },
     SimpleOracle_1: {
       address: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
       abi: [
