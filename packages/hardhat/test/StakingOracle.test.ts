@@ -11,7 +11,7 @@ describe("StakingOracle", function () {
   let node4: any;
   let slasher: any;
 
-  const MINIMUM_STAKE = ethers.parseEther("10");
+  const MINIMUM_STAKE = ethers.parseEther("1");
   const STALE_DATA_WINDOW = 5;
 
   beforeEach(async function () {
@@ -74,7 +74,7 @@ describe("StakingOracle", function () {
     });
 
     it("Should reject registration with insufficient stake", async function () {
-      const insufficientStake = ethers.parseEther("5");
+      const insufficientStake = ethers.parseEther("0.5");
       await expect(oracle.connect(node1).registerNode({ value: insufficientStake })).to.be.revertedWith(
         "Insufficient stake",
       );
