@@ -41,7 +41,7 @@ const deployStakingOracle: DeployFunction = async function (hre: HardhatRuntimeE
           address: stakingOracleAddress,
           abi: deployment.abi,
           functionName: "registerNode",
-          args: [],
+          args: [initialPrice],
           value: parseEther("15"),
         });
       }),

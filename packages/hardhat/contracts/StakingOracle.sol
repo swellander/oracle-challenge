@@ -43,15 +43,15 @@ contract StakingOracle {
     }
 
     /* ========== Oracle Node Operation Functions ========== */
-    function registerNode() public payable {
+    function registerNode(uint256 initialPrice) public payable {
         require(msg.value >= MINIMUM_STAKE, "Insufficient stake");
         require(nodes[msg.sender].nodeAddress == address(0), "Node already registered");
 
         nodes[msg.sender] = OracleNode({
             nodeAddress: msg.sender,
             stakedAmount: msg.value,
-            lastReportedPrice: 0,
-            lastReportedTimestamp: 0,
+            lastReportedPrice: initialPrice,
+            lastReportedTimestamp: block.timestamp,
             lastClaimedTimestamp: block.timestamp,
             lastSlashedTimestamp: 0
         });
@@ -59,6 +59,7 @@ contract StakingOracle {
         nodeAddresses.push(msg.sender);
 
         emit NodeRegistered(msg.sender, msg.value);
+        emit PriceReported(msg.sender, initialPrice);
     }
 
     function reportPrice(uint256 price) public onlyNode {

@@ -44,9 +44,9 @@ describe("StakingOracle", function () {
     });
 
     it("Should return all registered node addresses in order", async function () {
-      await oracle.connect(node1).registerNode({ value: MINIMUM_STAKE });
-      await oracle.connect(node2).registerNode({ value: MINIMUM_STAKE });
-      await oracle.connect(node3).registerNode({ value: MINIMUM_STAKE });
+      await oracle.connect(node1).registerNode(1500, { value: MINIMUM_STAKE });
+      await oracle.connect(node2).registerNode(1501, { value: MINIMUM_STAKE });
+      await oracle.connect(node3).registerNode(1502, { value: MINIMUM_STAKE });
       const nodeAddresses = await oracle.getNodeAddresses();
       expect(nodeAddresses).to.deep.equal([node1.address, node2.address, node3.address]);
     });
@@ -54,36 +54,44 @@ describe("StakingOracle", function () {
 
   describe("Node Registration", function () {
     it("Should allow nodes to register with minimum stake", async function () {
-      await expect(oracle.connect(node1).registerNode({ value: MINIMUM_STAKE }))
+      const initialPrice = 1500;
+      await expect(oracle.connect(node1).registerNode(initialPrice, { value: MINIMUM_STAKE }))
         .to.emit(oracle, "NodeRegistered")
-        .withArgs(node1.address, MINIMUM_STAKE);
+        .withArgs(node1.address, MINIMUM_STAKE)
+        .and.to.emit(oracle, "PriceReported")
+        .withArgs(node1.address, initialPrice);
 
       const nodeInfo = await oracle.nodes(node1.address);
       expect(nodeInfo.nodeAddress).to.equal(node1.address);
       expect(nodeInfo.stakedAmount).to.equal(MINIMUM_STAKE);
-      expect(nodeInfo.lastReportedPrice).to.equal(0);
-      expect(nodeInfo.lastReportedTimestamp).to.equal(0);
+      expect(nodeInfo.lastReportedPrice).to.equal(initialPrice);
+      expect(nodeInfo.lastReportedTimestamp).to.be.gt(0);
 
       expect(await oracle.nodeAddresses(0)).to.equal(node1.address);
     });
 
-    it("Should emit NodeRegistered event on successful registration", async function () {
-      await expect(oracle.connect(node1).registerNode({ value: MINIMUM_STAKE }))
+    it("Should emit NodeRegistered and PriceReported events on successful registration", async function () {
+      const initialPrice = 1500;
+      await expect(oracle.connect(node1).registerNode(initialPrice, { value: MINIMUM_STAKE }))
         .to.emit(oracle, "NodeRegistered")
-        .withArgs(node1.address, MINIMUM_STAKE);
+        .withArgs(node1.address, MINIMUM_STAKE)
+        .and.to.emit(oracle, "PriceReported")
+        .withArgs(node1.address, initialPrice);
     });
 
     it("Should reject registration with insufficient stake", async function () {
       const insufficientStake = ethers.parseEther("0.5");
-      await expect(oracle.connect(node1).registerNode({ value: insufficientStake })).to.be.revertedWith(
+      const initialPrice = 1500;
+      await expect(oracle.connect(node1).registerNode(initialPrice, { value: insufficientStake })).to.be.revertedWith(
         "Insufficient stake",
       );
     });
 
     it("Should reject duplicate node registration", async function () {
-      await oracle.connect(node1).registerNode({ value: MINIMUM_STAKE });
+      const initialPrice = 1500;
+      await oracle.connect(node1).registerNode(initialPrice, { value: MINIMUM_STAKE });
 
-      await expect(oracle.connect(node1).registerNode({ value: MINIMUM_STAKE })).to.be.revertedWith(
+      await expect(oracle.connect(node1).registerNode(initialPrice, { value: MINIMUM_STAKE })).to.be.revertedWith(
         "Node already registered",
       );
     });
@@ -91,15 +99,15 @@ describe("StakingOracle", function () {
 
   describe("Price Reporting", function () {
     beforeEach(async function () {
-      await oracle.connect(node1).registerNode({ value: MINIMUM_STAKE });
+      await oracle.connect(node1).registerNode(1500, { value: MINIMUM_STAKE });
     });
 
     it("Should record the reported price and timestamp in contract state", async function () {
       let nodeInfo = await oracle.nodes(node1.address);
-      expect(nodeInfo.lastReportedPrice).to.equal(0);
-      expect(nodeInfo.lastReportedTimestamp).to.equal(0);
+      expect(nodeInfo.lastReportedPrice).to.equal(1500);
+      expect(nodeInfo.lastReportedTimestamp).to.be.gt(0);
 
-      const price = 1500;
+      const price = 1600;
       const tx = await oracle.connect(node1).reportPrice(price);
       await tx.wait();
 
@@ -137,7 +145,7 @@ describe("StakingOracle", function () {
 
   describe("Claim Reward", function () {
     beforeEach(async function () {
-      await oracle.connect(node1).registerNode({ value: MINIMUM_STAKE });
+      await oracle.connect(node1).registerNode(1500, { value: MINIMUM_STAKE });
     });
 
     it("Should allow nodes to claim rewards based on time elapsed", async function () {
@@ -167,12 +175,9 @@ describe("StakingOracle", function () {
 
   describe("Price Aggregation and Node Management", function () {
     beforeEach(async function () {
-      await oracle.connect(node1).registerNode({ value: MINIMUM_STAKE });
-      await oracle.connect(node2).registerNode({ value: MINIMUM_STAKE });
-      await oracle.connect(node3).registerNode({ value: MINIMUM_STAKE });
-      await oracle.connect(node1).reportPrice(1450);
-      await oracle.connect(node2).reportPrice(1500);
-      await oracle.connect(node3).reportPrice(1550);
+      await oracle.connect(node1).registerNode(1450, { value: MINIMUM_STAKE });
+      await oracle.connect(node2).registerNode(1500, { value: MINIMUM_STAKE });
+      await oracle.connect(node3).registerNode(1550, { value: MINIMUM_STAKE });
     });
 
     it("Should slash stale nodes and reward slasher", async function () {
@@ -208,8 +213,7 @@ describe("StakingOracle", function () {
       let price = await oracle.getPrice();
       expect(price).to.equal(1500);
 
-      await oracle.connect(node4).registerNode({ value: MINIMUM_STAKE });
-      await oracle.connect(node4).reportPrice(1600);
+      await oracle.connect(node4).registerNode(1600, { value: MINIMUM_STAKE });
       price = await oracle.getPrice();
       expect(price).to.equal(1525);
     });
@@ -243,11 +247,8 @@ describe("StakingOracle", function () {
       const StakingOracleFactory = await ethers.getContractFactory("StakingOracle");
       const freshOracle = await StakingOracleFactory.deploy();
 
-      await freshOracle.connect(node1).registerNode({ value: MINIMUM_STAKE });
-      await freshOracle.connect(node2).registerNode({ value: MINIMUM_STAKE });
-
-      await freshOracle.connect(node1).reportPrice(1500);
-      await freshOracle.connect(node2).reportPrice(1501);
+      await freshOracle.connect(node1).registerNode(1500, { value: MINIMUM_STAKE });
+      await freshOracle.connect(node2).registerNode(1501, { value: MINIMUM_STAKE });
 
       await time.increase(STALE_DATA_WINDOW + 1);
 
