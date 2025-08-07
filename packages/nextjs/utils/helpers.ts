@@ -1,11 +1,9 @@
 import { QUESTIONS_FOR_OO } from "./constants";
 
 const generateRandomPastDate = (now: Date): Date => {
-  const monthsBack = Math.floor(Math.random() * 2) + 1; // 1–2 months
-  const daysBack = Math.floor(Math.random() * 6) + 10; // 10–15 days
+  const daysBack = Math.floor(Math.random() * 45) + 1; // 1 - 45 days
 
   const pastDate = new Date(now);
-  pastDate.setMonth(pastDate.getMonth() - monthsBack);
   pastDate.setDate(pastDate.getDate() - daysBack);
 
   return pastDate;
