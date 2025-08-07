@@ -50,7 +50,11 @@ const createAssertions = async (
         value: reward + (1n * 10n ** 18n * BigInt(Math.floor(Math.random() * 100))) / 100n,
       });
       console.log(`✅ created assertion ${nextAssertionId}`);
-      accountToAssertionIds[account.account.address].push(nextAssertionId);
+
+      // Track the assertion for 80% of cases; otherwise, leave it untracked so it will expire
+      if (Math.random() < 0.8) {
+        accountToAssertionIds[account.account.address].push(nextAssertionId);
+      }
       nextAssertionId++;
     }
   }
@@ -90,7 +94,7 @@ const proposeAssertions = async (
               args: [assertionId, false],
               value: assertion.bond,
             });
-            console.log(`❌ FALSE responder proposed outcome=false for assertion ${assertionId} `);
+            console.log(`❌ proposed outcome=false for assertion ${assertionId} `);
           } else if (randomness < 0.9) {
             const outcome = Math.random() < 0.5;
             await randomResponder.writeContract({
