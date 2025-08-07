@@ -13,7 +13,11 @@ const getHighlightColor = (oldPrice: bigint | undefined, newPrice: bigint | unde
   return "bg-error";
 };
 
-export const PriceWidget = () => {
+interface PriceWidgetProps {
+  contractName: "StakingOracle" | "WhitelistOracle";
+}
+
+export const PriceWidget = ({ contractName }: PriceWidgetProps) => {
   const [highlight, setHighlight] = useState(false);
   const [highlightColor, setHighlightColor] = useState("");
   const prevPrice = useRef<bigint | undefined>(undefined);
@@ -23,7 +27,7 @@ export const PriceWidget = () => {
     isLoading,
     isError,
   } = useScaffoldReadContract({
-    contractName: "StakingOracle",
+    contractName,
     functionName: "getPrice",
     watch: true,
   }) as { data: bigint | undefined; isError: boolean; isLoading: boolean };

@@ -11,7 +11,7 @@ const Home: NextPage = () => {
         <div className="px-5 w-full max-w-5xl mx-auto">
           <div className="flex flex-col gap-8">
             <div className="w-full">
-              <PriceWidget />
+              <PriceWidget contractName="StakingOracle" />
             </div>
             <div className="w-full">
               <NodesTable />
