@@ -1,7 +1,7 @@
 import { deployments, ethers } from "hardhat";
 import hre from "hardhat";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { cleanup, QUESTIONS_FOR_OO, sleep } from "./utils";
+import { cleanup, getRandomQuestion, sleep } from "./utils";
 import { WalletClient } from "@nomicfoundation/hardhat-viem/types";
 import { Deployment } from "hardhat-deploy/types";
 import { zeroAddress } from "viem";
@@ -46,7 +46,7 @@ const createAssertions = async (
         address: optimisticDeployment.address as `0x${string}`,
         abi: optimisticDeployment.abi,
         functionName: "assertEvent",
-        args: [QUESTIONS_FOR_OO[Math.floor(Math.random() * QUESTIONS_FOR_OO.length)], 0n, 0n],
+        args: [getRandomQuestion(), 0n, 0n],
         value: reward + (1n * 10n ** 18n * BigInt(Math.floor(Math.random() * 100))) / 100n,
       });
       console.log(`✅ created assertion ${nextAssertionId}`);
