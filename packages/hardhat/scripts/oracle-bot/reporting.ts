@@ -52,12 +52,22 @@ export const reportPrices = async (hre: HardhatRuntimeEnvironment) => {
         if (shouldReport) {
           const price = BigInt(await getRandomPrice(account.account.address, currentPrice));
           console.log(`Reporting price ${price} from ${account.account.address}`);
-          return await account.writeContract({
-            address: oracleContract.address as `0x${string}`,
-            abi: oracleContract.abi,
-            functionName: "reportPrice",
-            args: [price],
-          });
+          try {
+            return await account.writeContract({
+              address: oracleContract.address as `0x${string}`,
+              abi: oracleContract.abi,
+              functionName: "reportPrice",
+              args: [price],
+            });
+          } catch (error: any) {
+            if (error.message && error.message.includes("Not enough stake")) {
+              console.log(
+                `Skipping price report from ${account.account.address} - insufficient stake during execution`,
+              );
+              return Promise.resolve();
+            }
+            throw error;
+          }
         } else {
           console.log(`Skipping price report from ${account.account.address}`);
           return Promise.resolve();

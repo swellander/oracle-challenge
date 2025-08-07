@@ -1,5 +1,5 @@
 import { reportPrices } from "./oracle-bot/reporting";
-import { validateNodes } from "./oracle-bot/validation";
+import { claimRewards, validateNodes } from "./oracle-bot/validation";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import hre from "hardhat";
 import { cleanup, sleep } from "./utils";
@@ -15,6 +15,7 @@ const runCycle = async (hre: HardhatRuntimeEnvironment) => {
     await publicClient.transport.request({ method: "evm_mine" });
 
     await validateNodes(hre);
+    await claimRewards(hre);
     await publicClient.transport.request({ method: "evm_mine" });
     await publicClient.transport.request({ method: "evm_setAutomine", params: [true] });
   } catch (error) {
