@@ -6,7 +6,7 @@ import TooltipInfo from "~~/components/TooltipInfo";
 import { IntegerInput } from "~~/components/scaffold-eth";
 import { useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 import { useGlobalState } from "~~/services/store/store";
-import { QUESTIONS_FOR_OO } from "~~/utils/constants";
+import { getRandomQuestion } from "~~/utils/helpers";
 
 interface SubmitAssertionModalProps {
   isOpen: boolean;
@@ -25,8 +25,7 @@ const SubmitAssertionModal = ({ isOpen, onClose }: SubmitAssertionModalProps) =>
   const { writeContractAsync } = useScaffoldWriteContract({ contractName: "OptimisticOracle" });
 
   const handleRandomQuestion = () => {
-    const randomIndex = Math.floor(Math.random() * QUESTIONS_FOR_OO.length);
-    setDescription(QUESTIONS_FOR_OO[randomIndex]);
+    setDescription(getRandomQuestion());
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
