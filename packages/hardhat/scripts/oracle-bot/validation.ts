@@ -34,13 +34,21 @@ export const claimRewards = async (hre: HardhatRuntimeEnvironment) => {
 
         // Only claim rewards if the node has sufficient stake
         if (stakedAmount >= minimumStake) {
-          console.log(`Claiming rewards for ${account.account.address}`);
-          return await account.writeContract({
-            address: oracleContract.address as `0x${string}`,
-            abi: oracleContract.abi,
-            functionName: "claimReward",
-            args: [],
-          });
+          try {
+            console.log(`Claiming rewards for ${account.account.address}`);
+            return await account.writeContract({
+              address: oracleContract.address as `0x${string}`,
+              abi: oracleContract.abi,
+              functionName: "claimReward",
+              args: [],
+            });
+          } catch (error: any) {
+            if (error.message && error.message.includes("No rewards available")) {
+              console.log(`Skipping reward claim for ${account.account.address} - no rewards available`);
+              return Promise.resolve();
+            }
+            throw error;
+          }
         } else {
           console.log(`Skipping reward claim for ${account.account.address} - insufficient stake`);
           return Promise.resolve();
