@@ -20,8 +20,6 @@ export const MonitorAndTriggerTx = () => {
 
   useEffect(() => {
     if (!publicClient || !walletClient) return;
-    if (!isLocalNetwork) return;
-    if (!isBurnerWallet) return;
 
     const pollBlock = async () => {
       try {
@@ -33,10 +31,12 @@ export const MonitorAndTriggerTx = () => {
 
         if (prev && newTimestamp === prev) {
           try {
-            await walletClient.sendTransaction({
-              to: walletClient.account.address,
-              value: parseEther("0.0000001"),
-            });
+            if (isBurnerWallet && isLocalNetwork) {
+              await walletClient.sendTransaction({
+                to: walletClient.account.address,
+                value: parseEther("0.0000001"),
+              });
+            }
           } catch (err) {
             console.log("Failed to send tx");
           }
