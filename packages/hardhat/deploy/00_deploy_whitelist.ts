@@ -11,11 +11,12 @@ const deployWhitelistOracleContracts: DeployFunction = async function (hre: Hard
   const { deployer } = await hre.getNamedAccounts();
   const { deploy } = hre.deployments;
   const { viem } = hre;
+  // Set your own address here
+  const whitelistContractNewOwner = deployer;
 
   const publicClient = await viem.getPublicClient();
 
   console.log("Deploying WhitelistOracle contracts...");
-  const whitelistContractOwner = deployer;
 
   // Get 10 wallet clients (accounts)
   const accounts = await viem.getWalletClients();
@@ -106,13 +107,13 @@ const deployWhitelistOracleContracts: DeployFunction = async function (hre: Hard
   });
   console.log(`Initial median price: ${medianPrice.toString()}`);
 
-  if (deployer !== whitelistContractOwner) {
+  if (deployer !== whitelistContractNewOwner) {
     console.log("Transferring ownership of WhitelistOracle");
     await deployerAccount.writeContract({
       address: whitelistOracleAddress,
       abi: whitelistOracleAbi,
       functionName: "transferOwnership",
-      args: [whitelistContractOwner],
+      args: [whitelistContractNewOwner],
     });
     console.log("Ownership transferred successfully!");
   }
