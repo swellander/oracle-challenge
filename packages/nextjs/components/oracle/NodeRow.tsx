@@ -1,7 +1,8 @@
 import { useEffect, useRef } from "react";
 import { ConfigSlider } from "./ConfigSlider";
 import { NodeRowProps } from "./types";
-import { formatEther } from "viem";
+import { erc20Abi, formatEther } from "viem";
+import { useReadContract, useWatchContractEvent } from "wagmi";
 import { HighlightedCell } from "~~/components/oracle/HighlightedCell";
 import { Address } from "~~/components/scaffold-eth";
 import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
@@ -14,10 +15,36 @@ export const NodeRow = ({ address }: NodeRowProps) => {
     args: [address],
   });
 
-  const { data: oraBalance } = useScaffoldReadContract({
-    contractName: "ORA",
+  const { data: oracleTokenAddress } = useScaffoldReadContract({
+    contractName: "StakingOracle",
+    functionName: "oracleToken",
+  });
+
+  const { data: oraBalance, refetch: refetchOraBalance } = useReadContract({
+    address: oracleTokenAddress as `0x${string}`,
+    abi: erc20Abi,
     functionName: "balanceOf",
     args: [address],
+    query: {
+      enabled: !!oracleTokenAddress,
+    },
+  });
+
+  useWatchContractEvent({
+    address: oracleTokenAddress as `0x${string}`,
+    abi: erc20Abi,
+    eventName: "Transfer",
+    onLogs: logs => {
+      const relevantTransfer = logs.find(
+        log =>
+          log.args.to?.toLowerCase() === address.toLowerCase() ||
+          log.args.from?.toLowerCase() === address.toLowerCase(),
+      );
+      if (relevantTransfer) {
+        refetchOraBalance();
+      }
+    },
+    enabled: !!oracleTokenAddress,
   });
 
   const { data: minimumStake } = useScaffoldReadContract({
