@@ -2,11 +2,26 @@
 
 import { useState } from "react";
 import { parseEther } from "viem";
+import { usePublicClient } from "wagmi";
 import TooltipInfo from "~~/components/TooltipInfo";
 import { IntegerInput } from "~~/components/scaffold-eth";
 import { useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 import { useGlobalState } from "~~/services/store/store";
 import { getRandomQuestion } from "~~/utils/helpers";
+import { notification } from "~~/utils/scaffold-eth";
+
+const getStartTimestamp = (timestamp: bigint, startInMinutes: string) => {
+  if (startInMinutes.length === 0) return 0n;
+  if (Number(startInMinutes) === 0) return 0n;
+  return timestamp + BigInt(startInMinutes) * 60n;
+};
+
+const getEndTimestamp = (timestamp: bigint, startTimestamp: bigint, durationInMinutes: string) => {
+  if (durationInMinutes.length === 0) return 0n;
+  if (Number(durationInMinutes) === 3) return 0n;
+  if (startTimestamp === 0n) return timestamp + BigInt(durationInMinutes) * 60n;
+  return startTimestamp + BigInt(durationInMinutes) * 60n;
+};
 
 interface SubmitAssertionModalProps {
   isOpen: boolean;
@@ -16,11 +31,12 @@ interface SubmitAssertionModalProps {
 const SubmitAssertionModal = ({ isOpen, onClose }: SubmitAssertionModalProps) => {
   const { timestamp } = useGlobalState();
   const [isLoading, setIsLoading] = useState(false);
+  const publicClient = usePublicClient();
 
   const [description, setDescription] = useState("");
   const [reward, setReward] = useState<string>("");
-  const [startTime, setStartTime] = useState<string>("");
-  const [endTime, setEndTime] = useState<string>("");
+  const [startInMinutes, setStartInMinutes] = useState<string>("");
+  const [durationInMinutes, setDurationInMinutes] = useState<string>("");
 
   const { writeContractAsync } = useScaffoldWriteContract({ contractName: "OptimisticOracle" });
 
@@ -30,21 +46,36 @@ const SubmitAssertionModal = ({ isOpen, onClose }: SubmitAssertionModalProps) =>
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (durationInMinutes.length > 0 && Number(durationInMinutes) < 3) {
+      notification.error("Duration must be at least 3 minutes or leave blank to use default value");
+      return;
+    }
+    if (!publicClient) {
+      notification.error("Public client not found");
+      return;
+    }
+
     try {
       setIsLoading(true);
-      const startTimeFormatted = startTime.length === 0 ? 0n : BigInt(startTime);
-      const endTimeFormatted = endTime.length === 0 ? 0n : BigInt(endTime);
+      let recentTimestamp = timestamp;
+      if (!recentTimestamp) {
+        const block = await publicClient.getBlock();
+        recentTimestamp = block.timestamp;
+      }
+
+      const startTimestamp = getStartTimestamp(recentTimestamp, startInMinutes);
+      const endTimestamp = getEndTimestamp(recentTimestamp, startTimestamp, durationInMinutes);
 
       await writeContractAsync({
         functionName: "assertEvent",
-        args: [description.trim(), startTimeFormatted, endTimeFormatted],
+        args: [description.trim(), startTimestamp, endTimestamp],
         value: parseEther(reward),
       });
       // Reset form after successful submission
       setDescription("");
       setReward("");
-      setStartTime("");
-      setEndTime("");
+      setStartInMinutes("");
+      setDurationInMinutes("");
       onClose();
     } catch (error) {
       console.log("Error with submission", error);
@@ -58,8 +89,8 @@ const SubmitAssertionModal = ({ isOpen, onClose }: SubmitAssertionModalProps) =>
     // Reset form when closing
     setDescription("");
     setReward("");
-    setStartTime("");
-    setEndTime("");
+    setStartInMinutes("");
+    setDurationInMinutes("");
   };
 
   if (!isOpen) return null;
@@ -82,7 +113,7 @@ const SubmitAssertionModal = ({ isOpen, onClose }: SubmitAssertionModalProps) =>
             <TooltipInfo
               top={-2}
               right={5}
-              infoText="Create a new assertion with your reward stake. Leave timestamps blank to use default values."
+              infoText="Create a new assertion with your reward stake. Leave time inputs blank to use default values."
             />
           </div>
 
@@ -140,29 +171,28 @@ const SubmitAssertionModal = ({ isOpen, onClose }: SubmitAssertionModalProps) =>
                 />
               </div>
               {/* Start Time and End Time Inputs */}
-              {timestamp && <div className="!mt-6 px-1 text-sm">Current Timestamp: {timestamp}</div>}
-              <div className="grid grid-cols-2 gap-4 !mt-0">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="label">
-                    <span className="label-text font-medium">Start Time</span>
+                    <span className="label-text font-medium">Start in (minutes)</span>
                   </label>
                   <IntegerInput
                     name="startTime"
-                    placeholder="0"
-                    value={startTime}
-                    onChange={newValue => setStartTime(newValue)}
+                    placeholder="blank = now"
+                    value={startInMinutes}
+                    onChange={newValue => setStartInMinutes(newValue)}
                     disableMultiplyBy1e18
                   />
                 </div>
                 <div>
                   <label className="label">
-                    <span className="label-text font-medium">End Time</span>
+                    <span className="label-text font-medium">Duration (minutes)</span>
                   </label>
                   <IntegerInput
                     name="endTime"
-                    placeholder="0"
-                    value={endTime}
-                    onChange={newValue => setEndTime(newValue)}
+                    placeholder="minimum 3 minutes"
+                    value={durationInMinutes}
+                    onChange={newValue => setDurationInMinutes(newValue)}
                     disableMultiplyBy1e18
                   />
                 </div>
