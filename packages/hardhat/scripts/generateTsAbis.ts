@@ -9,7 +9,6 @@
 import * as fs from "fs";
 import prettier from "prettier";
 import { DeployFunction } from "hardhat-deploy/types";
-import { ethers } from "ethers";
 
 const generatedContractComment = `
 /**
@@ -122,41 +121,7 @@ const generateTsAbis: DeployFunction = async function () {
     ),
   );
 
-  // --- NEW: Generate externalContracts.ts for ORA token ---
-  // For each chain, get the StakingOracle deployment, call oracleToken, and write ORA data
-  const externalContracts: Record<string, any> = {};
-  for (const chainName of getDirectories(DEPLOYMENTS_DIR)) {
-    const chainId = fs.readFileSync(`${DEPLOYMENTS_DIR}/${chainName}/.chainId`).toString();
-    const stakingOraclePath = `${DEPLOYMENTS_DIR}/${chainName}/StakingOracle.json`;
-    if (!fs.existsSync(stakingOraclePath)) continue;
-    const stakingOracleDeployment = JSON.parse(fs.readFileSync(stakingOraclePath).toString());
-    const provider = new ethers.JsonRpcProvider("http://localhost:8545"); // or use config
-    const stakingOracle = new ethers.Contract(stakingOracleDeployment.address, stakingOracleDeployment.abi, provider);
-    let oraAddress;
-    try {
-      oraAddress = await stakingOracle.oracleToken();
-    } catch (e) {
-      console.error(`Failed to fetch ORA address for chain ${chainId}`, e);
-      continue;
-    }
-    const oraArtifact = JSON.parse(fs.readFileSync(`${ARTIFACTS_DIR}/contracts/OracleToken.sol/ORA.json`).toString());
-    if (!externalContracts[chainId]) externalContracts[chainId] = {};
-    externalContracts[chainId]["ORA"] = {
-      address: oraAddress,
-      abi: oraArtifact.abi,
-    };
-  }
-  fs.writeFileSync(
-    `${TARGET_DIR}externalContracts.ts`,
-    await prettier.format(
-      `${generatedContractComment} import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract"; \n\n
-const externalContracts = ${JSON.stringify(externalContracts, null, 2)} as const;\n\nexport default externalContracts satisfies GenericContractsDeclaration;`,
-      { parser: "typescript" },
-    ),
-  );
-
   console.log(`📝 Updated TypeScript contract definition file on ${TARGET_DIR}deployedContracts.ts`);
-  console.log(`📝 Updated TypeScript contract definition file on ${TARGET_DIR}externalContracts.ts`);
 };
 
 export default generateTsAbis;
