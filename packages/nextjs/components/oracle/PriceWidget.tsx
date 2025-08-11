@@ -44,8 +44,6 @@ export const PriceWidget = ({ contractName }: PriceWidgetProps) => {
     prevPrice.current = currentPrice;
   }, [currentPrice]);
 
-  console.log(currentPrice, isLoading, isError);
-
   return (
     <div className="flex flex-col gap-2">
       <h2 className="text-xl font-bold">Current Price</h2>

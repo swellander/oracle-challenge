@@ -10,6 +10,9 @@ import { useGlobalState } from "~~/services/store/store";
 import { getRandomQuestion } from "~~/utils/helpers";
 import { notification } from "~~/utils/scaffold-eth";
 
+const MINIMUM_REWARD = 0.21;
+const MINIMUM_ASSERTION_WINDOW = 3;
+
 const getStartTimestamp = (timestamp: bigint, startInMinutes: string) => {
   if (startInMinutes.length === 0) return 0n;
   if (Number(startInMinutes) === 0) return 0n;
@@ -18,7 +21,7 @@ const getStartTimestamp = (timestamp: bigint, startInMinutes: string) => {
 
 const getEndTimestamp = (timestamp: bigint, startTimestamp: bigint, durationInMinutes: string) => {
   if (durationInMinutes.length === 0) return 0n;
-  if (Number(durationInMinutes) === 3) return 0n;
+  if (Number(durationInMinutes) === MINIMUM_ASSERTION_WINDOW) return 0n;
   if (startTimestamp === 0n) return timestamp + BigInt(durationInMinutes) * 60n;
   return startTimestamp + BigInt(durationInMinutes) * 60n;
 };
@@ -46,10 +49,18 @@ const SubmitAssertionModal = ({ isOpen, onClose }: SubmitAssertionModalProps) =>
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (durationInMinutes.length > 0 && Number(durationInMinutes) < 3) {
-      notification.error("Duration must be at least 3 minutes or leave blank to use default value");
+    if (durationInMinutes.length > 0 && Number(durationInMinutes) < MINIMUM_ASSERTION_WINDOW) {
+      notification.error(
+        `Duration must be at least ${MINIMUM_ASSERTION_WINDOW} minutes or leave blank to use default value`,
+      );
       return;
     }
+
+    if (Number(reward) < MINIMUM_REWARD) {
+      notification.error(`Reward must be at least ${MINIMUM_REWARD} ETH`);
+      return;
+    }
+
     if (!publicClient) {
       notification.error("Public client not found");
       return;
@@ -164,7 +175,7 @@ const SubmitAssertionModal = ({ isOpen, onClose }: SubmitAssertionModalProps) =>
                 </label>
                 <IntegerInput
                   name="reward"
-                  placeholder="0.22"
+                  placeholder={`Minimum ${MINIMUM_REWARD} ETH`}
                   value={reward}
                   onChange={newValue => setReward(newValue)}
                   disableMultiplyBy1e18
@@ -190,7 +201,7 @@ const SubmitAssertionModal = ({ isOpen, onClose }: SubmitAssertionModalProps) =>
                   </label>
                   <IntegerInput
                     name="endTime"
-                    placeholder="minimum 3 minutes"
+                    placeholder={`minimum ${MINIMUM_ASSERTION_WINDOW} minutes`}
                     value={durationInMinutes}
                     onChange={newValue => setDurationInMinutes(newValue)}
                     disableMultiplyBy1e18
