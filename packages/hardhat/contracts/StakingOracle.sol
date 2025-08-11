@@ -93,6 +93,7 @@ contract StakingOracle {
         uint256 rewardAmount = 0;
 
         if (node.stakedAmount < MINIMUM_STAKE) {
+            // For slashed nodes, only reward for time before they were slashed
             if (node.lastClaimedTimestamp < node.lastSlashedTimestamp) {
                 rewardAmount = node.lastSlashedTimestamp - node.lastClaimedTimestamp;
             }

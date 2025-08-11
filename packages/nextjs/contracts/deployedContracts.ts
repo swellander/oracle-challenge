@@ -1696,6 +1696,19 @@ const deployedContracts = {
         },
         {
           inputs: [],
+          name: "SLASHER_REWARD_PERCENTAGE",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
           name: "STALE_DATA_WINDOW",
           outputs: [
             {
@@ -1705,6 +1718,13 @@ const deployedContracts = {
             },
           ],
           stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "claimReward",
+          outputs: [],
+          stateMutability: "nonpayable",
           type: "function",
         },
         {
@@ -1782,6 +1802,16 @@ const deployedContracts = {
               name: "lastReportedTimestamp",
               type: "uint256",
             },
+            {
+              internalType: "uint256",
+              name: "lastClaimedTimestamp",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "lastSlashedTimestamp",
+              type: "uint256",
+            },
           ],
           stateMutability: "view",
           type: "function",
@@ -1813,7 +1843,13 @@ const deployedContracts = {
           type: "function",
         },
         {
-          inputs: [],
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "initialPrice",
+              type: "uint256",
+            },
+          ],
           name: "registerNode",
           outputs: [],
           stateMutability: "payable",
@@ -1834,7 +1870,7 @@ const deployedContracts = {
         },
         {
           inputs: [],
-          name: "validateNodes",
+          name: "slashNodes",
           outputs: [],
           stateMutability: "nonpayable",
           type: "function",
