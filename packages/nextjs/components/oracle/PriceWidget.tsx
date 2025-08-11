@@ -51,20 +51,18 @@ export const PriceWidget = ({ contractName }: PriceWidgetProps) => {
         <TooltipInfo
           top={0}
           right={0}
-          infoText="Displays the median price. If an error occurs, it means that no oracle nodes have reported prices in the last 10 seconds."
+          infoText="Displays the median price. If no oracle nodes have reported prices in the last 10 seconds, it will display 'No fresh price'."
         />
         <div className={`rounded-lg transition-colors duration-1000 ${highlight ? highlightColor : ""}`}>
-          <div className="text-4xl font-bold">
+          <div className="font-bold h-10 text-4xl flex items-center justify-center">
             {isError ? (
-              <div className="text-error">Error</div>
-            ) : currentPrice !== undefined ? (
-              `$${parseFloat(formatEther(currentPrice)).toFixed(2)}`
+              <div className="text-error text-xl">No fresh price</div>
             ) : isLoading || currentPrice === undefined ? (
               <div className="animate-pulse">
                 <div className="h-10 bg-secondary rounded-md w-32"></div>
               </div>
             ) : (
-              <div className="text-error">Error</div>
+              `$${parseFloat(formatEther(currentPrice)).toFixed(2)}`
             )}
           </div>
         </div>
